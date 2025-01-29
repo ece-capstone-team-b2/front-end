@@ -1,20 +1,18 @@
-from SensorDataCollector import SensorDataCollector
-from StyleSheets import *
+from sensor_data_collector import SensorDataCollector
+from data_view_publisher import DataViewPublisher
+from widgets import DataPageInterface
+from style_sheets import *
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QWidget, QPushButton, QLabel, QButtonGroup, QRadioButton, QTextEdit
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont
-import sys
+from PyQt6.QtCore import Qt
 
-class FeedbackPage(QWidget):
-    def __init__(self):
+class FeedbackPage(DataPageInterface):
+    def __init__(self, dataSource: DataViewPublisher):
         super().__init__()
         self.sensorDataCollector = SensorDataCollector()
         self.setup()
         self.selectedExercise = None
-        self.timer = QTimer(self)
-        # timer ticks every second
-        self.timer.setInterval(1000)
-        self.timer.timeout.connect(self.retrieveData)
+        self.dataSource = dataSource
+        self.dataSource.subscribe(self)
 
     def setup(self):
         layout = QHBoxLayout()
@@ -74,15 +72,16 @@ class FeedbackPage(QWidget):
         label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         layout.addWidget(label)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        placeholder1 = QTextEdit()
-        placeholder1.setText("Placeholder text")
-        placeholder1.setReadOnly(True)
-        placeholder1.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
+        feedbackText = QTextEdit()
+        feedbackText.setText("Placeholder text")
+        feedbackText.setReadOnly(True)
+        feedbackText.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
+        self.feedBackText: QTextEdit = feedbackText
         self.startButton = QPushButton()
         self.startButton.setText("Start")
-        self.startButton.clicked.connect(lambda: self.startButtonPressed())
+        self.startButton.clicked.connect(self.startButtonPressed)
         layout.setSpacing(10)
-        layout.addWidget(placeholder1)
+        layout.addWidget(self.feedBackText)
         layout.addWidget(self.startButton)
         feedbackBox.setMinimumHeight(700)
         feedbackBox.setStyleSheet(FEEDBACK_BOX_STYLE_SHEET)
@@ -92,51 +91,11 @@ class FeedbackPage(QWidget):
         self.selectedExercise = exercise
 
     def startButtonPressed(self):
-        print(self.startButton.text())
         if self.selectedExercise is None:
             print("debug: Doing nothing, no exercise was selected")
-        elif self.startButton.text() == "Start":
-            self.timer.start()
-            print(f"data collection for {self.selectedExercise} started")
-            self.startButton.setText("Stop")
         else:
-            self.timer.stop()
-            print(f"data collection for {self.selectedExercise} stopped")
-            self.startButton.setText("Start")
+            self.dataSource.toggleCollectData(self.selectedExercise)
 
-
-    def retrieveData(self):
-        # do something with retrieved data
-        self.sensorDataCollector.readData()
-
-
-
-
-        
-
-class RawDataPage(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.sensorDataCollector = SensorDataCollector()
-        self.setup()
-    
-    def setup(self):
-        self.setLayout(QVBoxLayout())
-
-        rawDataMessage = QLabel("rawdata")
-        rawDataMessage.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        rawDataMessage.setFont(QFont("Times", 20))
-        self.layout().addWidget(rawDataMessage)
-
-class HomePage(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setup()
-
-    def setup(self):
-        self.setLayout(QVBoxLayout())
-
-        welcomeMessage = QLabel("Welcome to SWEAT!")
-        welcomeMessage.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        welcomeMessage.setFont(QFont("Times", 20))
-        self.layout().addWidget(welcomeMessage)
+    def updateData(self, data):
+        # do something with updated data
+        self.feedBackText.append("simulated data returned: " + str(data))
