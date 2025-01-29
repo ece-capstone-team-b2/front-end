@@ -14,7 +14,7 @@ class DataViewPublisher:
         self.timer.setInterval(200)
         self.timer.timeout.connect(self.retrieveData)
 
-    def subscribe(self, subscriber: QWidget):
+    def subscribe(self, subscriber: DataPageInterface):
         self.subscribers.append(subscriber)
 
     def retrieveData(self):

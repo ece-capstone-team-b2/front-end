@@ -1,4 +1,3 @@
-from sensor_data_collector import SensorDataCollector
 from data_view_publisher import DataViewPublisher
 from widgets import DataPageInterface
 from style_sheets import *
@@ -8,7 +7,6 @@ from PyQt6.QtCore import Qt
 class FeedbackPage(DataPageInterface):
     def __init__(self, dataSource: DataViewPublisher):
         super().__init__()
-        self.sensorDataCollector = SensorDataCollector()
         self.setup()
         self.selectedExercise = None
         self.dataSource = dataSource
@@ -93,8 +91,12 @@ class FeedbackPage(DataPageInterface):
     def startButtonPressed(self):
         if self.selectedExercise is None:
             print("debug: Doing nothing, no exercise was selected")
+            return
+        elif self.startButton.text() == "Start":
+            self.startButton.setText("Stop")
         else:
-            self.dataSource.toggleCollectData(self.selectedExercise)
+            self.startButton.setText("Start")
+        self.dataSource.toggleCollectData(self.selectedExercise)
 
     def updateData(self, data):
         # do something with updated data
