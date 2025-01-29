@@ -7,4 +7,6 @@ class SensorDataCollector:
         self.sensor = None
 
     def readData(self):
-        return random.randint(1,10)
+        ret = random.randint(1,10)
+        print(f"simulating data collection, returned {ret}")
+        return ret
