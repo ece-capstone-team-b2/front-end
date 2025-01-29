@@ -1,7 +1,4 @@
-import random
-
-# as an example
-
+# example data collector
 class SensorDataCollector:
 
     def __init__(self):

@@ -4,6 +4,7 @@ from sensor_data_collector import SensorDataCollector
 from PyQt6.QtWidgets import QWidget, QWidget
 from PyQt6.QtCore import QTimer
 
+# Publishes data to feedback page and raw data page
 class DataViewPublisher:
     def __init__(self):
         self.sensorDataCollector = SensorDataCollector()
