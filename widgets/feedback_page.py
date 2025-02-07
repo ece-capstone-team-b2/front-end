@@ -3,6 +3,8 @@ from widgets import DataPageInterface
 from style_sheets import *
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QWidget, QPushButton, QLabel, QButtonGroup, QRadioButton, QTextEdit
 from PyQt6.QtCore import Qt
+from PyQt6.QtOpenGLWidgets import QOpenGLWidget
+from widgets.leg_display import LegDisplay
 
 class FeedbackPage(DataPageInterface):
     def __init__(self, dataSource: DataViewPublisher):
@@ -52,12 +54,13 @@ class FeedbackPage(DataPageInterface):
     def createVisualizationBox(self):
         visualizationBox = QWidget(self)
         layout = QVBoxLayout(visualizationBox)
-        placeholder1 = QWidget()
-        placeholder2 = QWidget()
-        placeholder1.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
-        placeholder2.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
-        layout.addWidget(placeholder1)
-        layout.addWidget(placeholder2)
+        parent = QOpenGLWidget()
+        frontview = LegDisplay(parent)
+        sideview = LegDisplay(parent)
+        #frontview.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
+        #sideview.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
+        layout.addWidget(frontview)
+        layout.addWidget(sideview)
         layout.setSpacing(10)
         visualizationBox.setMinimumHeight(700)
         visualizationBox.setStyleSheet(VISUALIZATION_BOX_STYLE_SHEET)
