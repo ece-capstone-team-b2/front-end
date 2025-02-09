@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from OpenGL.GL import *
+import random
 
 class LegDisplay(QOpenGLWidget):
     def initializeGL(self):
@@ -9,13 +10,11 @@ class LegDisplay(QOpenGLWidget):
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glBegin(GL_TRIANGLES)
-        glColor3f(1.0, 0.0, 0.0)
-        glVertex3f(0.0, 0.5, 0.0)
-        glColor3f(0.0, 1.0, 0.0)
-        glVertex3f(-0.5, -0.5, 0.0)
-        glColor3f(0.0, 0.0, 1.0)
-        glVertex3f(0.5, -0.5, 0.0)
+        glBegin(GL_LINE_LOOP)
+        points = [[random.random()%1,0.5],[-0.5, -0.5], [0.5, -0.5]]
+        for point in points:
+            glColor3f(1.0, 0.0, 0.0)
+            glVertex3f(point[0], point[1], 0.0)
         glEnd()
 
     def resizeGL(self, w, h):

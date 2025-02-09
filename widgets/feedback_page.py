@@ -54,13 +54,11 @@ class FeedbackPage(DataPageInterface):
     def createVisualizationBox(self):
         visualizationBox = QWidget(self)
         layout = QVBoxLayout(visualizationBox)
-        parent = QOpenGLWidget()
-        frontview = LegDisplay(parent)
-        sideview = LegDisplay(parent)
-        #frontview.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
-        #sideview.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
-        layout.addWidget(frontview)
-        layout.addWidget(sideview)
+        self.parent = QOpenGLWidget()
+        self.frontview = LegDisplay(self.parent)
+        self.sideview = LegDisplay(self.parent)
+        layout.addWidget(self.frontview)
+        layout.addWidget(self.sideview)
         layout.setSpacing(10)
         visualizationBox.setMinimumHeight(700)
         visualizationBox.setStyleSheet(VISUALIZATION_BOX_STYLE_SHEET)
@@ -103,4 +101,6 @@ class FeedbackPage(DataPageInterface):
 
     def updateData(self, data):
         # do something with updated data
+        self.frontview .update()
+        self.sideview.update()
         self.feedBackText.append("simulated data returned: " + str(data))
