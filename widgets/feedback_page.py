@@ -4,7 +4,7 @@ from style_sheets import *
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QWidget, QPushButton, QLabel, QButtonGroup, QRadioButton, QTextEdit
 from PyQt6.QtCore import Qt
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
-from widgets.leg_display import LegDisplay
+from widgets.leg_display import LegDisplay, FrontLegFunctions, SideLegFunctions
 
 class FeedbackPage(DataPageInterface):
     def __init__(self, dataSource: DataViewPublisher):
@@ -55,8 +55,13 @@ class FeedbackPage(DataPageInterface):
         visualizationBox = QWidget(self)
         layout = QVBoxLayout(visualizationBox)
         self.parent = QOpenGLWidget()
+
+        self.frontlegfunctions = FrontLegFunctions()
         self.frontview = LegDisplay(self.parent)
+
+        self.sidelegfunctions = SideLegFunctions()
         self.sideview = LegDisplay(self.parent)
+
         layout.addWidget(self.frontview)
         layout.addWidget(self.sideview)
         layout.setSpacing(10)
