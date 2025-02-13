@@ -16,7 +16,7 @@ class LegDisplay(QOpenGLWidget,):
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glBegin(GL_LINE_LOOP)
+        glBegin(GL_LINES)
         
         for point in self.points:
             glColor3f(1.0, 0.0, 0.0)
@@ -33,11 +33,10 @@ class LegFunctions:
         # starts (closer to head)
         
         self.thigh_end = [0, 0]
-        self.thigh_start = [0, (self.thigh_end[1] + 0.527)]
+        self.thigh_start = [0, (self.thigh_end[1] + 0.289)]
         self.shank_start = self.thigh_end
-        self.shank_end = [0, self.thigh_end[1] - 0.2835]
+        self.shank_end = [0, self.thigh_end[1] - 0.238]
         self.foot_top = self.shank_end
-        self.foot_bottom = [0.1515, (self.foot_top[1] - 0.0455)]
 
         # these do change
         self.knee_deg = 0 
@@ -57,25 +56,25 @@ class LegFunctions:
 class SideLegFunctions(LegFunctions):
     def __init__(self):
         super().__init__()
+        self.foot_bottom = [0.1515, (self.foot_top[1] - 0.0455)]
 
     def getPoints(self):
         current_thigh_end = [0, self.thigh_end[1]]
         current_thigh_start = [math.sqrt((self.thigh_start[1])**2)-((self.thigh_start[1]*self.knee_deg/90)**2), (self.thigh_start[1]*self.knee_deg/90)]
-        current_shank_start = []
-        current_shank_end = []
-        current_foot_start = []
-        current_foot_end = []
-        return [current_thigh_start, current_thigh_end]
+        current_shank_end = self.shank_end
+        current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]]
+        current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]]
+        return [current_thigh_start, current_thigh_end, current_thigh_end, current_shank_end, current_shank_end, current_foot_left, current_foot_left, current_foot_right, current_foot_right, current_shank_end]
     
 class FrontLegFunctions(LegFunctions):
     def __init__(self):
         super().__init__()
+        self.foot_bottom = [0.0455, (self.foot_top[1] - 0.0455)]
 
     def getPoints(self):
         current_thigh_end = [0, self.thigh_end[1]]
         current_thigh_start = [0, (self.thigh_start[1]*self.knee_deg/90)]
-        current_shank_start = []
-        current_shank_end = []
-        current_foot_start = []
-        current_foot_end = []
-        return [current_thigh_start, current_thigh_end]
+        current_shank_end = self.shank_end
+        current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]]
+        current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]]
+        return [current_thigh_start, current_thigh_end, current_thigh_end, current_shank_end, current_shank_end, current_foot_left, current_foot_left, current_foot_right, current_foot_right, current_shank_end]
