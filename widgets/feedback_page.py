@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QWidget, QPushBut
 from PyQt6.QtCore import Qt
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from widgets.leg_display import LegDisplay, FrontLegFunctions, SideLegFunctions
+import random
 
 class FeedbackPage(DataPageInterface):
     def __init__(self, dataSource: DataViewPublisher):
@@ -106,6 +107,14 @@ class FeedbackPage(DataPageInterface):
 
     def updateData(self, data):
         # do something with updated data
-        self.frontview .update()
+        num = random.randint(90,180)
+
+        self.frontlegfunctions.updateLeg(num,90,0)
+        self.frontview.updatePoints(self.frontlegfunctions.getPoints())
+        self.frontview.update()
+
+        self.sidelegfunctions.updateLeg(num,90,0)
+        self.sideview.updatePoints(self.sidelegfunctions.getPoints())
         self.sideview.update()
-        self.feedBackText.append("simulated data returned: " + str(data))
+
+        self.feedBackText.append("simulated data returned: " + str(num))
