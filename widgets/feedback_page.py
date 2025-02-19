@@ -71,10 +71,23 @@ class FeedbackPage(DataPageInterface):
         self.leftsideview = LegDisplay(self.parent)
         self.rightsideview = LegDisplay(self.parent)
 
+        leftlabel = QLabel("Left")
+        leftlabel.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+
+        rightlabel = QLabel("Right") 
+        rightlabel.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+
+        labelbox = QWidget(self)
+        labelbox.setFixedHeight(40)
+        labellayout = QHBoxLayout(labelbox)
+        labellayout.addWidget(leftlabel)
+        labellayout.addWidget(rightlabel)
+
         toplayout.addWidget(self.leftfrontview)
         toplayout.addWidget(self.rightfrontview)
         sidelayout.addWidget(self.leftsideview)
         sidelayout.addWidget(self.rightsideview)
+        layout.addWidget(labelbox)
         layout.addWidget(frontvisualizationbox)
         layout.addWidget(sidevisualizationbox)
         layout.setSpacing(10)
