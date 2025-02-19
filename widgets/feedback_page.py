@@ -90,7 +90,7 @@ class FeedbackPage(DataPageInterface):
         layout.addWidget(label)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         feedbackText = QTextEdit()
-        feedbackText.setText("Placeholder text")
+        feedbackText.setText("Please select an exercise")
         feedbackText.setReadOnly(True)
         feedbackText.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
         self.feedBackText: QTextEdit = feedbackText
@@ -109,9 +109,10 @@ class FeedbackPage(DataPageInterface):
 
     def startButtonPressed(self):
         if self.selectedExercise is None:
-            print("debug: Doing nothing, no exercise was selected")
+            self.feedBackText.append("No exercise was selected")
             return
         elif self.startButton.text() == "Start":
+            self.feedBackText.clear()
             self.startButton.setText("Stop")
         else:
             self.startButton.setText("Start")
@@ -120,21 +121,22 @@ class FeedbackPage(DataPageInterface):
     def updateData(self, data):
         # do something with updated data
         num = random.randint(90,180)
+        num2 = random.uniform(-1,1)
 
-        self.leftfrontlegfunctions.updateLeg(num,90,0)
+        self.leftfrontlegfunctions.updateLeg(num,90,num2)
         self.leftfrontview.updatePoints(self.leftfrontlegfunctions.getPoints())
         self.leftfrontview.update()
 
-        self.rightfrontlegfunctions.updateLeg(num,90,0)
+        self.rightfrontlegfunctions.updateLeg(num,90,num2)
         self.rightfrontview.updatePoints(self.rightfrontlegfunctions.getPoints())
         self.rightfrontview.update()
 
-        self.leftsidelegfunctions.updateLeg(num,90,0)
+        self.leftsidelegfunctions.updateLeg(num,90,num2)
         self.leftsideview.updatePoints(self.leftsidelegfunctions.getPoints())
         self.leftsideview.update()
 
-        self.rightsidelegfunctions.updateLeg(num,90,0)
+        self.rightsidelegfunctions.updateLeg(num,90,num2)
         self.rightsideview.updatePoints(self.rightsidelegfunctions.getPoints())
         self.rightsideview.update()
 
-        self.feedBackText.append("simulated data returned: " + str(num))
+        self.feedBackText.append("simulated data returned -- knee angle: " + str(num) + " | foot com: " + str(num2))

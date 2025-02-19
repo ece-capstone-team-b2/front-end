@@ -39,8 +39,20 @@ class LegFunctions:
         self.foot_top = self.shank_end
 
         # these do change
+
+        # knee degree is always considered in the posterior/anterior direction
+        # it represents the ankle between the shank and thigh
         self.knee_deg = 0 
+
+        # ankle degree from the side is in the posterior/anterior direction
+        # ankle degree from the front is in the medial/lateral direction
+        # it represents the angle between the plane of the foot and the shank
         self.ankle_deg = 90 
+
+        # foot com from the side is in the posterior/anterior direction
+        # foot com from the front is in the medial/lateral direction
+        # it represents the coordinate on the plane of the foot where the center of mass is on a range of [-1,1]
+        # -1 is posterior or left; +1 is anterior or right
         self.foot_com = 0
 
     def updateLeg(self, knee_deg, ankle_deg, foot_com):
@@ -62,8 +74,12 @@ class SideLegFunctions(LegFunctions):
         current_thigh_end = [0, self.thigh_end[1]]
         current_thigh_start = [math.sqrt((self.thigh_start[1])**2)-((self.thigh_start[1]*self.knee_deg/90)**2), (self.thigh_start[1]*self.knee_deg/90)]
         current_shank_end = self.shank_end
-        current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]]
-        current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]]
+        if(self.foot_com < 0):
+            current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]]
+            current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*abs(self.foot_com)]
+        else:
+            current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*self.foot_com]
+            current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]]
         return [current_thigh_start, current_thigh_end, current_thigh_end, current_shank_end, current_shank_end, current_foot_left, current_foot_left, current_foot_right, current_foot_right, current_shank_end]
     
 class FrontLegFunctions(LegFunctions):
@@ -75,6 +91,10 @@ class FrontLegFunctions(LegFunctions):
         current_thigh_end = [0, self.thigh_end[1]]
         current_thigh_start = [0, (self.thigh_start[1]*self.knee_deg/90)]
         current_shank_end = self.shank_end
-        current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]]
-        current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]]
+        if(self.foot_com < 0):
+            current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]]
+            current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*abs(self.foot_com)]
+        else:
+            current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*self.foot_com]
+            current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]]
         return [current_thigh_start, current_thigh_end, current_thigh_end, current_shank_end, current_shank_end, current_foot_left, current_foot_left, current_foot_right, current_foot_right, current_shank_end]
