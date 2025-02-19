@@ -54,17 +54,29 @@ class FeedbackPage(DataPageInterface):
 
     def createVisualizationBox(self):
         visualizationBox = QWidget(self)
+        frontvisualizationbox = QWidget(self)
+        sidevisualizationbox = QWidget(self)
         layout = QVBoxLayout(visualizationBox)
+        toplayout = QHBoxLayout(frontvisualizationbox)
+        sidelayout = QHBoxLayout(sidevisualizationbox)
         self.parent = QOpenGLWidget()
 
-        self.frontlegfunctions = FrontLegFunctions()
-        self.frontview = LegDisplay(self.parent)
+        self.leftfrontlegfunctions = FrontLegFunctions()
+        self.rightfrontlegfunctions = FrontLegFunctions()
+        self.leftfrontview = LegDisplay(self.parent)
+        self.rightfrontview = LegDisplay(self.parent)
 
-        self.sidelegfunctions = SideLegFunctions()
-        self.sideview = LegDisplay(self.parent)
+        self.leftsidelegfunctions = SideLegFunctions()
+        self.rightsidelegfunctions = SideLegFunctions()
+        self.leftsideview = LegDisplay(self.parent)
+        self.rightsideview = LegDisplay(self.parent)
 
-        layout.addWidget(self.frontview)
-        layout.addWidget(self.sideview)
+        toplayout.addWidget(self.leftfrontview)
+        toplayout.addWidget(self.rightfrontview)
+        sidelayout.addWidget(self.leftsideview)
+        sidelayout.addWidget(self.rightsideview)
+        layout.addWidget(frontvisualizationbox)
+        layout.addWidget(sidevisualizationbox)
         layout.setSpacing(10)
         visualizationBox.setMinimumHeight(700)
         visualizationBox.setStyleSheet(VISUALIZATION_BOX_STYLE_SHEET)
@@ -109,12 +121,20 @@ class FeedbackPage(DataPageInterface):
         # do something with updated data
         num = random.randint(90,180)
 
-        self.frontlegfunctions.updateLeg(num,90,0)
-        self.frontview.updatePoints(self.frontlegfunctions.getPoints())
-        self.frontview.update()
+        self.leftfrontlegfunctions.updateLeg(num,90,0)
+        self.leftfrontview.updatePoints(self.leftfrontlegfunctions.getPoints())
+        self.leftfrontview.update()
 
-        self.sidelegfunctions.updateLeg(num,90,0)
-        self.sideview.updatePoints(self.sidelegfunctions.getPoints())
-        self.sideview.update()
+        self.rightfrontlegfunctions.updateLeg(num,90,0)
+        self.rightfrontview.updatePoints(self.rightfrontlegfunctions.getPoints())
+        self.rightfrontview.update()
+
+        self.leftsidelegfunctions.updateLeg(num,90,0)
+        self.leftsideview.updatePoints(self.leftsidelegfunctions.getPoints())
+        self.leftsideview.update()
+
+        self.rightsidelegfunctions.updateLeg(num,90,0)
+        self.rightsideview.updatePoints(self.rightsidelegfunctions.getPoints())
+        self.rightsideview.update()
 
         self.feedBackText.append("simulated data returned: " + str(num))
