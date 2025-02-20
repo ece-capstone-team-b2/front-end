@@ -2,10 +2,12 @@ from sensor_data_collector import SensorDataCollector
 from data_view_publisher import DataViewPublisher
 from widgets import DataPageInterface
 from style_sheets import *
-from PyQt6.QtWidgets import QGridLayout, QTextEdit
+from PyQt6.QtWidgets import QGridLayout, QTextEdit, QTableWidget, QVBoxLayout, QHBoxLayout, QHeaderView, QSlider, QTableWidgetItem
+from PyQt6.QtCore import Qt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as Canvas
 from matplotlib.figure import Figure
-import random
+from data_structures import *
+from typing import List
 
 class RawDataPage(DataPageInterface):
     def __init__(self, data_source: DataViewPublisher):
@@ -13,8 +15,7 @@ class RawDataPage(DataPageInterface):
         self.sensor_data_collector = SensorDataCollector()
         self.data_source = data_source
         self.data_source.subscribe(self)
-        self.data = []
-        
+        self.data: List[ImuData] = []
         self.setup()
     
     def setup(self):
@@ -35,10 +36,7 @@ class RawDataPage(DataPageInterface):
         axes = self.fig2.add_subplot(1,1,1)
         axes.scatter(self.randomData, self.data)
 
-        self.rawData1 = QTextEdit()
-        self.rawData1.setText("Placeholder text")
-        self.rawData1.setReadOnly(True)
-        self.rawData1.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
+        self.setupTable()
 
         self.rawData2 = QTextEdit()
         self.rawData2.setText("Placeholder text")
@@ -48,26 +46,90 @@ class RawDataPage(DataPageInterface):
         
         layout.addWidget(self.canvas1, 0, 1)
         layout.addWidget(self.canvas2, 1, 1)
-        layout.addWidget(self.rawData1, 0, 0)
+        layout.addLayout(self.tables_imu, 0, 0)
         layout.addWidget(self.rawData2, 1, 0)
 
         # ==== end of example ====
         self.setLayout(layout)
+    
+    def setupTable(self):
+        layout = QVBoxLayout()
+        
+        self.axis3d_table = create_formatted_table(
+            rowHeaders=['accelData', 'linearAccelData', 'gravityAccel', 'gyroData', 'magData'],
+            colHeaders=['x', 'y', 'z'])
 
-    def updateData(self, data):
-        # example of updating data
-        rand = random.randint(1,10)
-        self.randomData.append(rand)
+        self.position_table = create_formatted_table(
+            rowHeaders=['x', 'y', 'z'],
+            colHeaders=['position']
+        )
+
+        self.quat_table = create_formatted_table(
+            rowHeaders=['w', 'x', 'y', 'z'],
+            colHeaders=['quat orientation']
+        )
+
+        self.euler_table = create_formatted_table(
+            rowHeaders=['roll', 'pitch', 'yaw'],
+            colHeaders=['euler orientation']
+        )
+
+        position_tables_layout = QHBoxLayout()
+        position_tables_layout.addWidget(self.position_table)
+        position_tables_layout.addWidget(self.quat_table)
+        position_tables_layout.addWidget(self.euler_table)
+
+        self.slider = QSlider(Qt.Orientation.Horizontal)
+        self.slider.setRange(0,0)
+        self.slider.valueChanged.connect(self.update_tables)
+    
+        layout.addWidget(self.axis3d_table)
+        layout.addLayout(position_tables_layout)
+        layout.addWidget(self.slider)
+        self.tables_imu = layout
+
+    def update_tables(self, value):
+        imu_data = self.data[value]
+        self.populate_axis3d_row(0, imu_data.accelData)
+        self.populate_axis3d_row(1, imu_data.linearAccelData)
+        self.populate_axis3d_row(2, imu_data.gravityAccel)
+        self.populate_axis3d_row(3, imu_data.gyroData)
+        self.populate_axis3d_row(4, imu_data.magData)
+        self.populate_position(imu_data.positionData)
+
+    def populate_axis3d_row(self, row: int, data: Axis3d):
+        self.axis3d_table.setItem(row, 0, QTableWidgetItem(f'{data.x:.5f}'))
+        self.axis3d_table.setItem(row, 1, QTableWidgetItem(f'{data.y:.5f}'))
+        self.axis3d_table.setItem(row, 2, QTableWidgetItem(f'{data.z:.5f}'))
+
+    def populate_position(self, data: PositionData):
+        self.position_table.setItem(0, 0, QTableWidgetItem(f'{data.position.x:.5f}'))
+        self.position_table.setItem(0, 1, QTableWidgetItem(f'{data.position.y:.5f}'))
+        self.position_table.setItem(0, 2, QTableWidgetItem(f'{data.position.z:.5f}'))
+        self.quat_table.setItem(0, 0, QTableWidgetItem(f'{data.quatOrientation.w:.5f}'))
+        self.quat_table.setItem(0, 1, QTableWidgetItem(f'{data.quatOrientation.x:.5f}'))
+        self.quat_table.setItem(0, 2, QTableWidgetItem(f'{data.quatOrientation.y:.5f}'))
+        self.quat_table.setItem(0, 3, QTableWidgetItem(f'{data.quatOrientation.z:.5f}'))
+        self.euler_table.setItem(0, 0, QTableWidgetItem(f'{data.eulerOrientation.roll:.5f}'))
+        self.euler_table.setItem(0, 1, QTableWidgetItem(f'{data.eulerOrientation.pitch:.5f}'))
+        self.euler_table.setItem(0, 2, QTableWidgetItem(f'{data.eulerOrientation.yaw:.5f}'))
+        
+
+
+    def updateData(self, data: ImuData):
         self.data.append(data)
-        for ax in self.fig1.axes:
-            ax.cla()
-            ax.plot(self.data, self.randomData, 'r')
-        for ax in self.fig2.axes:
-            ax.cla()
-            ax.scatter(self.randomData, self.data)
-        self.canvas1.draw()
-        self.canvas2.draw()
-        self.rawData1.append(str(data))
-        self.rawData2.append(str(rand))
+        self.slider.setRange(0, len(self.data) - 1)
+        self.slider.setValue(len(self.data) - 1)
+        self.update_tables(len(self.data) - 1)
 
+
+def create_formatted_table(rowHeaders: List[str], colHeaders: List[str]):
+    table = QTableWidget()
+    table.setRowCount(len(rowHeaders))
+    table.setColumnCount(len(colHeaders))
+    table.setHorizontalHeaderLabels(colHeaders)
+    table.setVerticalHeaderLabels(rowHeaders)
+    table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+    table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+    return table
 
