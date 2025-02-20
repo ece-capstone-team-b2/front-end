@@ -6,8 +6,10 @@ from PyQt6.QtWidgets import QGridLayout, QTextEdit, QTableWidget, QVBoxLayout, Q
 from PyQt6.QtCore import Qt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as Canvas
 from matplotlib.figure import Figure
+from matplotlib.axes import Axes
+from matplotlib.lines import Line2D
 from data_structures import *
-from typing import List
+from typing import List, Dict
 
 class RawDataPage(DataPageInterface):
     def __init__(self, data_source: DataViewPublisher):
@@ -24,19 +26,9 @@ class RawDataPage(DataPageInterface):
         layout.setRowStretch(1, 1)
         layout.setColumnStretch(0, 1)
         layout.setColumnStretch(1, 1)
-        
-        # ==== start of an example ====
-        self.randomData = []
-        self.fig1 = Figure()
-        self.fig2 = Figure()
-        self.canvas1 = Canvas(self.fig1)
-        self.canvas2 = Canvas(self.fig2)
-        axes = self.fig1.add_subplot(1,1,1)
-        axes.plot(self.data, self.randomData, 'r')
-        axes = self.fig2.add_subplot(1,1,1)
-        axes.scatter(self.randomData, self.data)
 
-        self.setupTable()
+        self.setup_graphs()
+        self.setup_table()
 
         self.rawData2 = QTextEdit()
         self.rawData2.setText("Placeholder text")
@@ -52,7 +44,37 @@ class RawDataPage(DataPageInterface):
         # ==== end of example ====
         self.setLayout(layout)
     
-    def setupTable(self):
+    def setup_graphs(self):
+        self.fig1 = Figure()
+        self.canvas1 = Canvas(self.fig1)
+        self.accel_axes = self.fig1.add_subplot(2,2,1)
+        self.linear_accel_axes = self.fig1.add_subplot(2,2,2)
+        self.gravity_accel_axes = self.fig1.add_subplot(2,2,3)
+        self.gyro_axes = self.fig1.add_subplot(2,2,4)
+        self.fig1.tight_layout()
+
+        self.fig2 = Figure()
+        self.canvas2 = Canvas(self.fig2)
+        self.mag_axes = self.fig2.add_subplot(2,2,1)
+        self.position_axes = self.fig2.add_subplot(2,2,2)
+        self.quat_axes = self.fig2.add_subplot(2,2,3)
+        self.euler_axes = self.fig2.add_subplot(2,2,4)
+        self.fig2.tight_layout()
+
+        self.axes_to_name_mapping = {
+            self.accel_axes: 'accelData',
+            self.linear_accel_axes: 'linearAccelData',
+            self.gravity_accel_axes: 'gravityAccel',
+            self.gyro_axes: 'gyroData',
+            self.mag_axes: 'magData',
+            self.position_axes: 'position',
+            self.quat_axes: 'quatOrientation',
+            self.euler_axes: 'eulerOrientation'
+        }
+
+        format_axes(self.axes_to_name_mapping)
+        
+    def setup_table(self):
         layout = QVBoxLayout()
         
         self.axis3d_table = create_formatted_table(
@@ -114,14 +136,57 @@ class RawDataPage(DataPageInterface):
         self.euler_table.setItem(0, 1, QTableWidgetItem(f'{data.eulerOrientation.pitch:.5f}'))
         self.euler_table.setItem(0, 2, QTableWidgetItem(f'{data.eulerOrientation.yaw:.5f}'))
         
-
-
     def updateData(self, data: ImuData):
         self.data.append(data)
         self.slider.setRange(0, len(self.data) - 1)
         self.slider.setValue(len(self.data) - 1)
         self.update_tables(len(self.data) - 1)
+        self.update_graphs()
 
+    def update_graphs(self):
+        for ax in self.fig1.axes + self.fig2.axes:
+            name = self.axes_to_name_mapping[ax]
+            ax.cla()
+            if (name not in ['quatOrientation', 'eulerOrientation']):
+                data_to_plot = [getattr(imudata, name) if name != 'position' else imudata.positionData.position for imudata in self.data]
+                # data_to_plot = [getattr(imudata, name) for imudata in self.data if name ]
+                x = [data.x for data in data_to_plot]
+                y = [data.y for data in data_to_plot]
+                z = [data.z for data in data_to_plot]
+                ln1 = ax.plot(x, color='r')
+                ln2 = ax.plot(y, color='b')
+                ln3 = ax.plot(z, color='g')
+                ax.set_title(name, fontsize=5)
+                ax.legend(['x', 'y', 'z'], fontsize=5, loc='upper right')
+            elif (name == 'quatOrientation'):
+                data_to_plot = [imudata.positionData.quatOrientation for imudata in self.data]
+                w = [data.w for data in data_to_plot]
+                x = [data.x for data in data_to_plot]
+                y = [data.y for data in data_to_plot]
+                z = [data.z for data in data_to_plot]
+                ax.plot(w, color='k')
+                ax.plot(x, color='r')
+                ax.plot(y, color='g')
+                ax.plot(z, color='b')
+                ax.legend(['w', 'x', 'y', 'z'], fontsize=5, loc='upper right')
+            elif (name == 'eulerOrientation'):
+                data_to_plot = [imudata.positionData.eulerOrientation for imudata in self.data]
+                roll = [data.roll for data in data_to_plot]
+                pitch = [data.pitch for data in data_to_plot]
+                yaw = [data.yaw for data in data_to_plot]
+                ax.plot(roll, color='r')
+                ax.plot(pitch, color='g')
+                ax.plot(yaw, color='b')
+                ax.legend(['roll', 'pitch', 'yaw'], fontsize=5, loc='upper right')
+                # ax.draw_artist(ln1)
+                # ax.draw_artist(ln2)
+                # ax.draw_artist(ln3)
+        # self.fig1.canvas.blit(self.fig1.bbox)
+        # self.fig1.canvas.flush_events()
+        self.canvas1.draw()
+        self.canvas2.draw()
+            
+            
 
 def create_formatted_table(rowHeaders: List[str], colHeaders: List[str]):
     table = QTableWidget()
@@ -133,3 +198,7 @@ def create_formatted_table(rowHeaders: List[str], colHeaders: List[str]):
     table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
     return table
 
+def format_axes(axes: Dict[Axes, str]):
+    for axis, name in axes.items():
+        axis.tick_params(axis='both', labelsize=5)
+        axis.set_title(name, fontsize=5)
