@@ -4,6 +4,8 @@ from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from OpenGL.GL import *
 import random
 
+import numpy as np
+
 class LegDisplay(QOpenGLWidget,):
     def initializeGL(self):
         glEnable(GL_DEPTH_TEST)
@@ -60,6 +62,9 @@ class LegFunctions:
         self.ankle_deg = ankle_deg
         self.foot_com = foot_com
 
+    def getSomePoints(self, start, end, top_width, bottom_width):
+        pass
+
     @abstractmethod
     def getPoints(self):
         # returns array of all points to draw
@@ -97,4 +102,39 @@ class FrontLegFunctions(LegFunctions):
         else:
             current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*self.foot_com]
             current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]]
-        return [current_thigh_start, current_thigh_end, current_thigh_end, current_shank_end, current_shank_end, current_foot_left, current_foot_left, current_foot_right, current_foot_right, current_shank_end]
+
+        
+        points = []
+
+        hip_width = 0.23
+        thigh_width = 0.25
+        knee_width = 0.2
+        shank_width = 0.22
+        ankle_width = 0.15
+        step_size = 0.001
+
+        if not self.knee_deg < 1:
+            rangie = math.ceil((current_thigh_start[1]-current_thigh_end[1])/step_size)
+            
+            width = np.arange(hip_width, thigh_width, (thigh_width-hip_width)/rangie).tolist()
+
+            i = current_thigh_start[1]
+            while(i >= current_thigh_end[1]):
+                print((i - current_thigh_start[1])/(-step_size))
+                location = int((i - current_thigh_start[1])/(-step_size))
+                points += [[-width[location], i]]
+                i -= step_size
+
+            if(len(points)%2 == 1):
+                points = points[:-1]
+            
+            i = current_thigh_start[1]
+            while(i >= current_thigh_end[1]):
+                location = int((i - current_thigh_start[1])/(-step_size))
+                points += [[width[location], i]]
+                i -= step_size
+            
+            if(len(points)%2 == 1):
+                points = points[:-1]
+
+        return points + [current_thigh_end, current_shank_end, current_shank_end, current_foot_left, current_foot_left, current_foot_right, current_foot_right, current_shank_end]
