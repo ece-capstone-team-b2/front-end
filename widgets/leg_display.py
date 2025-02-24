@@ -40,6 +40,13 @@ class LegFunctions:
         self.shank_end = [0, self.thigh_end[1] - 0.238]
         self.foot_top = self.shank_end
 
+        self.hip_width = 0.23
+        self.thigh_width = 0.25
+        self.knee_width = 0.2
+        self.shank_width = 0.22
+        self.ankle_width = 0.15
+        self.step_size = 0.001
+
         # these do change
 
         # knee degree is always considered in the posterior/anterior direction
@@ -62,8 +69,47 @@ class LegFunctions:
         self.ankle_deg = ankle_deg
         self.foot_com = foot_com
 
-    def getSomePoints(self, start, end, top_width, bottom_width):
-        pass
+    def getVerticalPoints(self, smaller_y, larger_y, smaller_width, larger_width):
+        points = []
+
+        if smaller_y > larger_y:
+            case1 = True
+        else:
+            case1 = False
+        
+        rangie = abs(math.ceil((smaller_y-larger_y)/self.step_size))
+        width = np.arange(smaller_width, larger_width, (larger_width-smaller_width)/rangie).tolist()
+        start = smaller_y
+        end = larger_y
+
+        i = start
+        while(i >= end and case1 == True) or (i <= end and case1 == False):
+            location = int(abs((i - start)/(self.step_size)))
+            #print(end)
+            #print(case1)
+            #print(location)
+            points += [[-width[location], i]]
+            if case1:
+                i -= self.step_size
+            else:
+                i += self.step_size
+
+        if(len(points)%2 == 1):
+            points = points[:-1]
+        
+        i = start
+        while(i >= end and case1 == True) or (i <= end and case1 == False):
+            location = int(abs((i - start)/(self.step_size)))
+            points += [[width[location], i]]
+            if case1:
+                i -= self.step_size
+            else:
+                i += self.step_size
+        
+        if(len(points)%2 == 1):
+            points = points[:-1]
+
+        return points
 
     @abstractmethod
     def getPoints(self):
@@ -103,38 +149,8 @@ class FrontLegFunctions(LegFunctions):
             current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*self.foot_com]
             current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]]
 
-        
         points = []
-
-        hip_width = 0.23
-        thigh_width = 0.25
-        knee_width = 0.2
-        shank_width = 0.22
-        ankle_width = 0.15
-        step_size = 0.001
-
         if not self.knee_deg < 1:
-            rangie = math.ceil((current_thigh_start[1]-current_thigh_end[1])/step_size)
+            points = self.getVerticalPoints(current_thigh_start[1], current_thigh_end[1], self.hip_width, self.thigh_width)
             
-            width = np.arange(hip_width, thigh_width, (thigh_width-hip_width)/rangie).tolist()
-
-            i = current_thigh_start[1]
-            while(i >= current_thigh_end[1]):
-                print((i - current_thigh_start[1])/(-step_size))
-                location = int((i - current_thigh_start[1])/(-step_size))
-                points += [[-width[location], i]]
-                i -= step_size
-
-            if(len(points)%2 == 1):
-                points = points[:-1]
-            
-            i = current_thigh_start[1]
-            while(i >= current_thigh_end[1]):
-                location = int((i - current_thigh_start[1])/(-step_size))
-                points += [[width[location], i]]
-                i -= step_size
-            
-            if(len(points)%2 == 1):
-                points = points[:-1]
-
         return points + [current_thigh_end, current_shank_end, current_shank_end, current_foot_left, current_foot_left, current_foot_right, current_foot_right, current_shank_end]
