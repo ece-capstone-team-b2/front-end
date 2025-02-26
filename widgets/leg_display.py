@@ -123,18 +123,20 @@ class SideLegFunctions(LegFunctions):
         current_thigh_start = [math.sqrt((self.thigh_start[1])**2)-((self.thigh_start[1]*self.knee_deg/90)**2), (self.thigh_start[1]*self.knee_deg/90)]
         current_shank_end = self.shank_end
         if(self.foot_com < 0):
-            current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]]
-            current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*abs(self.foot_com)]
+            current_foot_left = [-self.foot_bottom[0]*2*2/3, self.foot_bottom[1]]
+            current_foot_right = [self.foot_bottom[0]*2/3, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*abs(self.foot_com)]
         else:
-            current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*self.foot_com]
-            current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]]
+            current_foot_left = [-self.foot_bottom[0]*2*2/3, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*self.foot_com]
+            current_foot_right = [self.foot_bottom[0]*2/3, self.foot_bottom[1]]
         
         points = []
 
         points += self.getVerticalPoints(current_thigh_end[1], (current_thigh_end[1]-current_shank_end[1])/2+current_shank_end[1], self.knee_width, self.shank_width)
         points += self.getVerticalPoints(current_shank_end[1], (current_thigh_end[1]-current_shank_end[1])/2+current_shank_end[1], self.ankle_width, self.shank_width)
+        
+        points += [[self.ankle_width, current_shank_end[1]], current_foot_right, current_foot_right, current_foot_left, [-self.ankle_width, current_shank_end[1]], current_foot_left]
 
-        return points + [current_thigh_start, current_thigh_end, current_shank_end, current_foot_left, current_foot_left, current_foot_right, current_foot_right, current_shank_end]
+        return points + [current_thigh_start, current_thigh_end]
     
 class FrontLegFunctions(LegFunctions):
     def __init__(self):
@@ -146,11 +148,11 @@ class FrontLegFunctions(LegFunctions):
         current_thigh_start = [0, (self.thigh_start[1]*self.knee_deg/90)]
         current_shank_end = self.shank_end
         if(self.foot_com < 0):
-            current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]]
-            current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*abs(self.foot_com)]
+            current_foot_left = [-self.foot_bottom[0]*2, self.foot_bottom[1]]
+            current_foot_right = [self.foot_bottom[0]*2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*abs(self.foot_com)]
         else:
-            current_foot_left = [-self.foot_bottom[0]/2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*self.foot_com]
-            current_foot_right = [self.foot_bottom[0]/2, self.foot_bottom[1]]
+            current_foot_left = [-self.foot_bottom[0]*2, self.foot_bottom[1]-(self.foot_bottom[1]-self.foot_top[1])*self.foot_com]
+            current_foot_right = [self.foot_bottom[0]*2, self.foot_bottom[1]]
 
         points = []
         if not self.knee_deg < 1:
@@ -160,5 +162,7 @@ class FrontLegFunctions(LegFunctions):
         points += self.getVerticalPoints(current_thigh_end[1], (current_thigh_end[1]-current_shank_end[1])/2+current_shank_end[1], self.knee_width, self.shank_width)
         points += self.getVerticalPoints(current_shank_end[1], (current_thigh_end[1]-current_shank_end[1])/2+current_shank_end[1], self.ankle_width, self.shank_width)
 
+        points += [[self.ankle_width, current_shank_end[1]], current_foot_right, current_foot_right, current_foot_left, [-self.ankle_width, current_shank_end[1]], current_foot_left]
+
             
-        return points + [current_shank_end, current_foot_left, current_foot_left, current_foot_right, current_foot_right, current_shank_end]
+        return points
