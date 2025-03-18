@@ -45,7 +45,7 @@ class LegFunctions:
         self.knee_width = 0.1
         self.shank_width = 0.11
         self.ankle_width = 0.075
-        self.step_size = 0.001
+        self.step_size = 0.0001
 
         # these do change
 
