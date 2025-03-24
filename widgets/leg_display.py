@@ -2,6 +2,7 @@ from abc import abstractmethod
 import math
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from OpenGL.GL import *
+from typing import Tuple
 import random
 
 import numpy as np
@@ -108,6 +109,34 @@ class LegFunctions:
 
         return points
 
+    # returns points on both sides of a line denoted by start (x1, y1) and end (x2, y2), with corresponding widths at each point
+    def getDiagPoints(self, start: Tuple[float, float], end: Tuple[float, float], start_width: float, end_width: float):
+        points = []
+        x1, y1 = start
+        x2, y2 = end
+        # y2 == y1 causes issue because line_func is x in terms of y, not one-to-one
+        # start_width = end_width causes issue because increments = 0, can't be used with np.arange(., ., step)
+        if y2 == y1 or end_width == start_width:
+            print("Line can't be horizontal and start/end widths cannot be same")
+            return points
+        rangie = math.ceil(abs((y1-y2)/self.step_size))
+        delta_width = (end_width - start_width)/rangie
+        width = np.arange(start_width, end_width + delta_width, delta_width).tolist()
+        line_func = lambda y : (y-y1)*(x2-x1)/(y2-y1) + x1
+        # determining which direction to go in
+        step = self.step_size if y1 <= y2 else -self.step_size
+        for y in np.arange(y1, y2 + (self.step_size if y1 <= y2 else -self.step_size), step):
+            idx = int(abs(y-y1)/self.step_size)
+            points += [[line_func(y) + width[idx], y]]
+            points += [[line_func(y) - width[idx], y]]
+        # picking every other, rearranging array since lines plotted by consecutive points
+        first_half = points[::2]
+        second_half = points[1::2]
+        if len(first_half) % 2 == 1: first_half = first_half[:-1]
+        if len(second_half) % 2 == 1: second_half = second_half[:-1]
+        points = first_half + second_half
+        return points
+
     @abstractmethod
     def getPoints(self):
         # returns array of all points to draw
@@ -135,8 +164,13 @@ class SideLegFunctions(LegFunctions):
         points += self.getVerticalPoints(current_shank_end[1], (current_thigh_end[1]-current_shank_end[1])/2+current_shank_end[1], self.ankle_width, self.shank_width)
         
         points += [[self.ankle_width, current_shank_end[1]], current_foot_right, current_foot_right, current_foot_left, [-self.ankle_width, current_shank_end[1]], current_foot_left]
-
-        return points + [current_thigh_start, current_thigh_end]
+        
+        knee_hip_midpoint = [(current_thigh_start[0] + current_thigh_end[0])/2, (current_thigh_start[1] + current_thigh_end[1])/2]
+        # add points from middle of thigh to knee
+        points += self.getDiagPoints(knee_hip_midpoint, current_thigh_end, self.thigh_width, self.knee_width)
+        # add points from hip to middle of thigh
+        points += self.getDiagPoints(current_thigh_start, knee_hip_midpoint, self.hip_width, self.thigh_width)
+        return points
     
 class FrontLegFunctions(LegFunctions):
     def __init__(self):
