@@ -1,7 +1,8 @@
 # front-end
 UI Design
 
-
-# packages that must be installed
-# 1 - pyOpenGL
-# 2 - pyqt6
+## Dependency setup
+- Create virtualenv: `python -m venv venv`
+- Activate environment: `source venv/bin/activate`
+- Install dependencies: `pip install -r requirements.txt`
+- Run: `python main-view.py`
