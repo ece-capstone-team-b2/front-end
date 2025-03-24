@@ -122,6 +122,7 @@ class LegFunctions:
         rangie = math.ceil(abs((y1-y2)/self.step_size))
         delta_width = (end_width - start_width)/rangie
         width = np.arange(start_width, end_width + delta_width, delta_width).tolist()
+        # line defined by start/end points, function returns x in terms of y
         line_func = lambda y : (y-y1)*(x2-x1)/(y2-y1) + x1
         # determining which direction to go in
         step = self.step_size if y1 <= y2 else -self.step_size
