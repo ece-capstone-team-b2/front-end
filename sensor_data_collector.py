@@ -1,14 +1,25 @@
 import struct
 from data_structures import *
+import serial
+import struct
 
 imu_struct_format = "< 18d 4d 3d 4B"
 sample_data_file_path = 'sample_data/imu_data.bin'
 
 imu_struct_size = struct.calcsize(imu_struct_format)
 
-# example data collector
-class SensorDataCollector:
 
+def read_serial_data(port, baudrate=115200):
+    try:
+        with serial.Serial(port, baudrate) as ser:
+            data = ser.read(204)
+
+            return data
+    except serial.SerialException as e:
+        print(f"Serial error: {e}")
+
+
+class SensorDataCollector:
     def __init__(self):
         self.sensor = None
         self.data_generator = read_bin_chunks(sample_data_file_path)
@@ -32,6 +43,8 @@ def unpack_imu_data(binary_data):
     if len(binary_data) != imu_struct_size:
         raise ValueError("Invalid binary data size")
     unpacked = struct.unpack(imu_struct_format, binary_data)
+
+    print(unpacked)
     
     accelData = Axis3d(*unpacked[0:3])
     linearAccelData = Axis3d(*unpacked[3:6])

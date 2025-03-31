@@ -8,8 +8,18 @@
 from widgets import *
 from data_view_publisher import DataViewPublisher
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QWidget
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread
 import sys
+import serial
+import struct
+
+class DataCaptureThread(QThread):
+    def __init__(self):
+        QThread.__init__(self)
+        self.capture = False
+
+    def run(self):
+        self.capture = True
 
 class Page:
     def __init__(self, dataSource: DataViewPublisher):

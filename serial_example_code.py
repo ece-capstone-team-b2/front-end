@@ -37,10 +37,10 @@ def read_serial_data(port, baudrate=115200):
     try:
         with serial.Serial(port, baudrate) as ser:
             print(f"Reading from {port}... (Press Ctrl+C to stop)")
-            data = ser.read(12)
+            data = ser.read(204)
             print(len(data))
-            x, y, z = struct.unpack('fff', data)
-            return (x,y,z)
+
+            return data
     except serial.SerialException as e:
         print(f"Serial error: {e}")
 

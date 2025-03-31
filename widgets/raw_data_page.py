@@ -1,15 +1,21 @@
-from sensor_data_collector import SensorDataCollector
-from data_view_publisher import DataViewPublisher
-from widgets import DataPageInterface
-from style_sheets import *
-from PyQt6.QtWidgets import QGridLayout, QTextEdit, QTableWidget, QVBoxLayout, QHBoxLayout, QHeaderView, QSlider, QTableWidgetItem
-from PyQt6.QtCore import Qt
+import struct
+from typing import List, Dict
+
+import serial.tools.list_ports as list_ports
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtWidgets import QGridLayout, QTextEdit, QTableWidget, QVBoxLayout, QHBoxLayout, QHeaderView, QSlider, \
+    QTableWidgetItem, QComboBox, QPushButton
+from matplotlib.axes import Axes
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as Canvas
 from matplotlib.figure import Figure
-from matplotlib.axes import Axes
-from matplotlib.lines import Line2D
+
 from data_structures import *
-from typing import List, Dict
+from data_view_publisher import DataViewPublisher
+from sensor_data_collector import SensorDataCollector, unpack_imu_data, imu_struct_format
+from serial_example_code import read_serial_data
+from style_sheets import *
+from widgets import DataPageInterface
+
 
 class RawDataPage(DataPageInterface):
     def __init__(self, data_source: DataViewPublisher):
@@ -18,8 +24,30 @@ class RawDataPage(DataPageInterface):
         self.data_source = data_source
         self.data_source.subscribe(self)
         self.data: List[ImuData] = []
+        self.ports = [port.device for port in list_ports.comports()]
+        self.record_data = False
+
+        self.port_dropdown = QComboBox()
+        self.record_button = QPushButton()
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.capture_data)
+        self.timer.start(100)
+
         self.setup()
-    
+
+    def capture_data(self):
+        if self.record_data:
+            data = read_serial_data(self.port_dropdown.currentText())
+            unpacked: ImuData = unpack_imu_data(data)
+
+            print(unpacked.accelData.z)
+
+            self.update_data(unpacked)
+
+    def toggle_recording(self):
+        self.record_data = not self.record_data
+
     def setup(self):
         layout = QGridLayout()
         layout.setRowStretch(0, 1)
@@ -30,35 +58,41 @@ class RawDataPage(DataPageInterface):
         self.setup_graphs()
         self.setup_table()
 
-        self.rawData2 = QTextEdit()
-        self.rawData2.setText("Placeholder text")
-        self.rawData2.setReadOnly(True)
-        self.rawData2.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
-        
-        
+        self.raw_data_2 = QTextEdit()
+        self.raw_data_2.setText("Placeholder text")
+        self.raw_data_2.setReadOnly(True)
+        self.raw_data_2.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
+
+        self.port_dropdown.addItems(self.ports)
+
+        self.record_button.setText("Start/stop recording")
+        self.record_button.clicked.connect(self.toggle_recording)
+
         layout.addWidget(self.canvas1, 0, 1)
         layout.addWidget(self.canvas2, 1, 1)
         layout.addLayout(self.tables_imu, 0, 0)
-        layout.addWidget(self.rawData2, 1, 0)
+        layout.addWidget(self.raw_data_2, 1, 0)
+        layout.addWidget(self.port_dropdown, 2, 0)
+        layout.addWidget(self.record_button, 2, 1)
 
         # ==== end of example ====
         self.setLayout(layout)
-    
+
     def setup_graphs(self):
         self.fig1 = Figure()
         self.canvas1 = Canvas(self.fig1)
-        self.accel_axes = self.fig1.add_subplot(2,2,1)
-        self.linear_accel_axes = self.fig1.add_subplot(2,2,2)
-        self.gravity_accel_axes = self.fig1.add_subplot(2,2,3)
-        self.gyro_axes = self.fig1.add_subplot(2,2,4)
+        self.accel_axes = self.fig1.add_subplot(2, 2, 1)
+        self.linear_accel_axes = self.fig1.add_subplot(2, 2, 2)
+        self.gravity_accel_axes = self.fig1.add_subplot(2, 2, 3)
+        self.gyro_axes = self.fig1.add_subplot(2, 2, 4)
         self.fig1.tight_layout()
 
         self.fig2 = Figure()
         self.canvas2 = Canvas(self.fig2)
-        self.mag_axes = self.fig2.add_subplot(2,2,1)
-        self.position_axes = self.fig2.add_subplot(2,2,2)
-        self.quat_axes = self.fig2.add_subplot(2,2,3)
-        self.euler_axes = self.fig2.add_subplot(2,2,4)
+        self.mag_axes = self.fig2.add_subplot(2, 2, 1)
+        self.position_axes = self.fig2.add_subplot(2, 2, 2)
+        self.quat_axes = self.fig2.add_subplot(2, 2, 3)
+        self.euler_axes = self.fig2.add_subplot(2, 2, 4)
         self.fig2.tight_layout()
 
         self.axes_to_name_mapping = {
@@ -73,10 +107,10 @@ class RawDataPage(DataPageInterface):
         }
 
         format_axes(self.axes_to_name_mapping)
-        
+
     def setup_table(self):
         layout = QVBoxLayout()
-        
+
         self.axis3d_table = create_formatted_table(
             rowHeaders=['accelData', 'linearAccelData', 'gravityAccel', 'gyroData', 'magData'],
             colHeaders=['x', 'y', 'z'])
@@ -102,9 +136,9 @@ class RawDataPage(DataPageInterface):
         position_tables_layout.addWidget(self.euler_table)
 
         self.slider = QSlider(Qt.Orientation.Horizontal)
-        self.slider.setRange(0,0)
+        self.slider.setRange(0, 0)
         self.slider.valueChanged.connect(self.update_tables)
-    
+
         layout.addWidget(self.axis3d_table)
         layout.addLayout(position_tables_layout)
         layout.addWidget(self.slider)
@@ -135,8 +169,8 @@ class RawDataPage(DataPageInterface):
         self.euler_table.setItem(0, 0, QTableWidgetItem(f'{data.eulerOrientation.roll:.5f}'))
         self.euler_table.setItem(0, 1, QTableWidgetItem(f'{data.eulerOrientation.pitch:.5f}'))
         self.euler_table.setItem(0, 2, QTableWidgetItem(f'{data.eulerOrientation.yaw:.5f}'))
-        
-    def updateData(self, data: ImuData):
+
+    def update_data(self, data: ImuData):
         self.data.append(data)
         self.slider.setRange(0, len(self.data) - 1)
         self.slider.setValue(len(self.data) - 1)
@@ -148,7 +182,8 @@ class RawDataPage(DataPageInterface):
             name = self.axes_to_name_mapping[ax]
             ax.cla()
             if (name not in ['quatOrientation', 'eulerOrientation']):
-                data_to_plot = [getattr(imudata, name) if name != 'position' else imudata.positionData.position for imudata in self.data]
+                data_to_plot = [getattr(imudata, name) if name != 'position' else imudata.positionData.position for
+                                imudata in self.data]
                 # data_to_plot = [getattr(imudata, name) for imudata in self.data if name ]
                 x = [data.x for data in data_to_plot]
                 y = [data.y for data in data_to_plot]
@@ -185,8 +220,7 @@ class RawDataPage(DataPageInterface):
         # self.fig1.canvas.flush_events()
         self.canvas1.draw()
         self.canvas2.draw()
-            
-            
+
 
 def create_formatted_table(rowHeaders: List[str], colHeaders: List[str]):
     table = QTableWidget()
@@ -196,7 +230,9 @@ def create_formatted_table(rowHeaders: List[str], colHeaders: List[str]):
     table.setVerticalHeaderLabels(rowHeaders)
     table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
     table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
     return table
+
 
 def format_axes(axes: Dict[Axes, str]):
     for axis, name in axes.items():
