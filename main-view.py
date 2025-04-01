@@ -44,6 +44,11 @@ class Page:
             if p != page:
                 p.hide()
         page.show()
+        if page == self.rawDataPage:
+            self.rawDataPage.visible = True
+            self.rawDataPage.update_graphs()
+        else:
+            self.rawDataPage.visible = False
 
     # start the application
     def startApp(self):
@@ -53,7 +58,7 @@ class Page:
     def setUpPages(self):
         self.homePage = HomePage()
         self.feedbackPage = FeedbackPage(self.dataSource)
-        self.rawDataPage = RawDataPage(self.dataSource)
+        self.rawDataPage = RawDataPage(self.dataSource, visible=False)
         self.pages += [self.homePage, self.feedbackPage, self.rawDataPage]
 
         for page in self.pages:

@@ -66,8 +66,8 @@ class FeedbackPage(DataPageInterface):
         self.leftfrontview = LegDisplay(self.parent)
         self.rightfrontview = LegDisplay(self.parent)
 
-        self.leftsidelegfunctions = SideLegFunctions()
-        self.rightsidelegfunctions = SideLegFunctions()
+        self.leftsidelegfunctions = SideLegFunctions('left')
+        self.rightsidelegfunctions = SideLegFunctions('right')
         self.leftsideview = LegDisplay(self.parent)
         self.rightsideview = LegDisplay(self.parent)
 
