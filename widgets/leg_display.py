@@ -13,12 +13,15 @@ class LegDisplay(QOpenGLWidget,):
         glClearColor(0.0, 0.0, 0.0, 1.0)
 
         self.points = [[random.random()%1,0.5],[-0.5, -0.5], [0.5, -0.5]]
+
+        self.line_thickness = 3.0
     
     def updatePoints(self, new_points):
         self.points = new_points
 
     def paintGL(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glLineWidth(self.line_thickness)
         glBegin(GL_LINES)
         
         for point in self.points:

@@ -43,12 +43,19 @@ class Page:
         for p in self.pages:
             if p != page:
                 p.hide()
+                p.visible = False
         page.show()
-        if page == self.rawDataPage:
-            self.rawDataPage.visible = True
-            self.rawDataPage.update_graphs()
-        else:
-            self.rawDataPage.visible = False
+        page.visible = True
+        try:
+            page.updateLines()
+        except:
+            pass
+        # if page == self.rawDataPage:
+        #     self.rawDataPage.visible = True
+        #     # self.rawDataPage.update_graphs()
+        #     self.rawDataPage.updateLines()
+        # else:
+        #     self.rawDataPage.visible = False
 
     # start the application
     def startApp(self):
@@ -57,9 +64,20 @@ class Page:
     # set up the pages and connect them to their corresponding buttons
     def setUpPages(self):
         self.homePage = HomePage()
-        self.feedbackPage = FeedbackPage(self.dataSource)
-        self.rawDataPage = RawDataPage(self.dataSource, visible=False)
-        self.pages += [self.homePage, self.feedbackPage, self.rawDataPage]
+        self.feedbackPage = FeedbackPage(self.dataSource, visible=False)
+        self.ankleImuPage = ImuRawDataPage(self.dataSource, visible=False, label='Ankle')
+        self.kneeImuPage = ImuRawDataPage(self.dataSource, visible=False, label='Knee')
+        self.kneeAnglePage = FlexSensorRawDataPage(self.dataSource, visible=False, label='Angle')
+        self.feetDataPage = ForceRawDataPage(self.dataSource, visible=False, label='Feet')
+        # self.rawDataPage = RawDataPage(self.dataSource, visible=False)
+        self.pages += [
+            self.homePage,
+            self.feedbackPage,
+            self.ankleImuPage,
+            self.kneeImuPage,
+            self.kneeAnglePage,
+            self.feetDataPage
+        ]
 
         for page in self.pages:
             self.layout.addWidget(page)
@@ -67,7 +85,10 @@ class Page:
         button_to_page = {
             self.menuBar.homeButton: self.homePage,
             self.menuBar.feedbackButton: self.feedbackPage,
-            self.menuBar.rawDataButton: self.rawDataPage
+            self.menuBar.ankleImuDataButton: self.ankleImuPage,
+            self.menuBar.kneeImuDataButton: self.kneeImuPage,
+            self.menuBar.kneeAngleDataButton: self.kneeAnglePage,
+            self.menuBar.feetDataButton: self.feetDataPage
         }
 
         for button, currentPage in button_to_page.items():

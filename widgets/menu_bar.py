@@ -13,13 +13,23 @@ class MenuBar(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.homeButton = QPushButton("Home")
         self.feedbackButton = QPushButton("Feedback")
-        self.rawDataButton = QPushButton("Raw Data")
+        self.ankleImuDataButton = QPushButton("Ankle IMU")
+        self.kneeImuDataButton = QPushButton("Knee IMU")
+        self.kneeAngleDataButton = QPushButton("Knee Angle")
+        self.feetDataButton = QPushButton("Feet Pressure")
 
-        menuButtons = [self.homeButton, self.feedbackButton, self.rawDataButton]
+        menuButtons = [
+            self.homeButton,
+            self.feedbackButton,
+            self.ankleImuDataButton,
+            self.kneeImuDataButton,
+            self.kneeAngleDataButton,
+            self.feetDataButton
+        ]
 
         for button in menuButtons:
-            button.setFixedSize(100, 25)
-            button.setFont(QFont("Times", 10))
+            button.setFixedSize(120, 30)
+            button.setFont(QFont("Times", 18))
             layout.addWidget(button)
             
         self.setLayout(layout)
