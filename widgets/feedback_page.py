@@ -8,12 +8,13 @@ from widgets.leg_display import LegDisplay, FrontLegFunctions, SideLegFunctions
 import random
 
 class FeedbackPage(DataPageInterface):
-    def __init__(self, dataSource: DataViewPublisher):
+    def __init__(self, dataSource: DataViewPublisher, visible: bool = False):
         super().__init__()
         self.setup()
         self.selectedExercise = None
         self.dataSource = dataSource
         self.dataSource.subscribe(self)
+        self.visible = visible
 
     def setup(self):
         layout = QHBoxLayout()
@@ -66,8 +67,8 @@ class FeedbackPage(DataPageInterface):
         self.leftfrontview = LegDisplay(self.parent)
         self.rightfrontview = LegDisplay(self.parent)
 
-        self.leftsidelegfunctions = SideLegFunctions()
-        self.rightsidelegfunctions = SideLegFunctions()
+        self.leftsidelegfunctions = SideLegFunctions('left')
+        self.rightsidelegfunctions = SideLegFunctions('right')
         self.leftsideview = LegDisplay(self.parent)
         self.rightsideview = LegDisplay(self.parent)
 

@@ -3,9 +3,10 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 class HomePage(QWidget):
-    def __init__(self):
+    def __init__(self, visible: bool = False):
         super().__init__()
         self.setup()
+        self.visible = visible
 
     def setup(self):
         self.setLayout(QVBoxLayout())
