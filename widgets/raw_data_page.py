@@ -3,15 +3,29 @@ from typing import List, Dict
 
 import serial.tools.list_ports as list_ports
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtWidgets import QGridLayout, QTextEdit, QTableWidget, QVBoxLayout, QHBoxLayout, QHeaderView, QSlider, \
-    QTableWidgetItem, QComboBox, QPushButton
+from PyQt6.QtWidgets import (
+    QGridLayout,
+    QTextEdit,
+    QTableWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QHeaderView,
+    QSlider,
+    QTableWidgetItem,
+    QComboBox,
+    QPushButton,
+)
 from matplotlib.axes import Axes
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as Canvas
 from matplotlib.figure import Figure
 
 from data_structures import *
 from data_view_publisher import DataViewPublisher
-from sensor_data_collector import SensorDataCollector, unpack_imu_data, imu_struct_format
+from sensor_data_collector import (
+    SensorDataCollector,
+    unpack_imu_data,
+    imu_struct_format,
+)
 from serial_example_code import read_serial_data
 from style_sheets import *
 from widgets import DataPageInterface
@@ -96,14 +110,14 @@ class RawDataPage(DataPageInterface):
         self.fig2.tight_layout()
 
         self.axes_to_name_mapping = {
-            self.accel_axes: 'accelData',
-            self.linear_accel_axes: 'linearAccelData',
-            self.gravity_accel_axes: 'gravityAccel',
-            self.gyro_axes: 'gyroData',
-            self.mag_axes: 'magData',
-            self.position_axes: 'position',
-            self.quat_axes: 'quatOrientation',
-            self.euler_axes: 'eulerOrientation'
+            self.accel_axes: "accelData",
+            self.linear_accel_axes: "linearAccelData",
+            self.gravity_accel_axes: "gravityAccel",
+            self.gyro_axes: "gyroData",
+            self.mag_axes: "magData",
+            self.position_axes: "position",
+            self.quat_axes: "quatOrientation",
+            self.euler_axes: "eulerOrientation",
         }
 
         format_axes(self.axes_to_name_mapping)
@@ -112,22 +126,26 @@ class RawDataPage(DataPageInterface):
         layout = QVBoxLayout()
 
         self.axis3d_table = create_formatted_table(
-            rowHeaders=['accelData', 'linearAccelData', 'gravityAccel', 'gyroData', 'magData'],
-            colHeaders=['x', 'y', 'z'])
+            rowHeaders=[
+                "accelData",
+                "linearAccelData",
+                "gravityAccel",
+                "gyroData",
+                "magData",
+            ],
+            colHeaders=["x", "y", "z"],
+        )
 
         self.position_table = create_formatted_table(
-            rowHeaders=['x', 'y', 'z'],
-            colHeaders=['position']
+            rowHeaders=["x", "y", "z"], colHeaders=["position"]
         )
 
         self.quat_table = create_formatted_table(
-            rowHeaders=['w', 'x', 'y', 'z'],
-            colHeaders=['quat orientation']
+            rowHeaders=["w", "x", "y", "z"], colHeaders=["quat orientation"]
         )
 
         self.euler_table = create_formatted_table(
-            rowHeaders=['roll', 'pitch', 'yaw'],
-            colHeaders=['euler orientation']
+            rowHeaders=["roll", "pitch", "yaw"], colHeaders=["euler orientation"]
         )
 
         position_tables_layout = QHBoxLayout()
@@ -154,21 +172,27 @@ class RawDataPage(DataPageInterface):
         self.populate_position(imu_data.positionData)
 
     def populate_axis3d_row(self, row: int, data: Axis3d):
-        self.axis3d_table.setItem(row, 0, QTableWidgetItem(f'{data.x:.5f}'))
-        self.axis3d_table.setItem(row, 1, QTableWidgetItem(f'{data.y:.5f}'))
-        self.axis3d_table.setItem(row, 2, QTableWidgetItem(f'{data.z:.5f}'))
+        self.axis3d_table.setItem(row, 0, QTableWidgetItem(f"{data.x:.5f}"))
+        self.axis3d_table.setItem(row, 1, QTableWidgetItem(f"{data.y:.5f}"))
+        self.axis3d_table.setItem(row, 2, QTableWidgetItem(f"{data.z:.5f}"))
 
     def populate_position(self, data: PositionData):
-        self.position_table.setItem(0, 0, QTableWidgetItem(f'{data.position.x:.5f}'))
-        self.position_table.setItem(0, 1, QTableWidgetItem(f'{data.position.y:.5f}'))
-        self.position_table.setItem(0, 2, QTableWidgetItem(f'{data.position.z:.5f}'))
-        self.quat_table.setItem(0, 0, QTableWidgetItem(f'{data.quatOrientation.w:.5f}'))
-        self.quat_table.setItem(0, 1, QTableWidgetItem(f'{data.quatOrientation.x:.5f}'))
-        self.quat_table.setItem(0, 2, QTableWidgetItem(f'{data.quatOrientation.y:.5f}'))
-        self.quat_table.setItem(0, 3, QTableWidgetItem(f'{data.quatOrientation.z:.5f}'))
-        self.euler_table.setItem(0, 0, QTableWidgetItem(f'{data.eulerOrientation.roll:.5f}'))
-        self.euler_table.setItem(0, 1, QTableWidgetItem(f'{data.eulerOrientation.pitch:.5f}'))
-        self.euler_table.setItem(0, 2, QTableWidgetItem(f'{data.eulerOrientation.yaw:.5f}'))
+        self.position_table.setItem(0, 0, QTableWidgetItem(f"{data.position.x:.5f}"))
+        self.position_table.setItem(0, 1, QTableWidgetItem(f"{data.position.y:.5f}"))
+        self.position_table.setItem(0, 2, QTableWidgetItem(f"{data.position.z:.5f}"))
+        self.quat_table.setItem(0, 0, QTableWidgetItem(f"{data.quatOrientation.w:.5f}"))
+        self.quat_table.setItem(0, 1, QTableWidgetItem(f"{data.quatOrientation.x:.5f}"))
+        self.quat_table.setItem(0, 2, QTableWidgetItem(f"{data.quatOrientation.y:.5f}"))
+        self.quat_table.setItem(0, 3, QTableWidgetItem(f"{data.quatOrientation.z:.5f}"))
+        self.euler_table.setItem(
+            0, 0, QTableWidgetItem(f"{data.eulerOrientation.roll:.5f}")
+        )
+        self.euler_table.setItem(
+            0, 1, QTableWidgetItem(f"{data.eulerOrientation.pitch:.5f}")
+        )
+        self.euler_table.setItem(
+            0, 2, QTableWidgetItem(f"{data.eulerOrientation.yaw:.5f}")
+        )
 
     def update_data(self, data: ImuData):
         self.data.append(data)
@@ -181,38 +205,48 @@ class RawDataPage(DataPageInterface):
         for ax in self.fig1.axes + self.fig2.axes:
             name = self.axes_to_name_mapping[ax]
             ax.cla()
-            if (name not in ['quatOrientation', 'eulerOrientation']):
-                data_to_plot = [getattr(imudata, name) if name != 'position' else imudata.positionData.position for
-                                imudata in self.data]
+            if name not in ["quatOrientation", "eulerOrientation"]:
+                data_to_plot = [
+                    (
+                        getattr(imudata, name)
+                        if name != "position"
+                        else imudata.positionData.position
+                    )
+                    for imudata in self.data
+                ]
                 # data_to_plot = [getattr(imudata, name) for imudata in self.data if name ]
                 x = [data.x for data in data_to_plot]
                 y = [data.y for data in data_to_plot]
                 z = [data.z for data in data_to_plot]
-                ln1 = ax.plot(x, color='r')
-                ln2 = ax.plot(y, color='b')
-                ln3 = ax.plot(z, color='g')
+                ln1 = ax.plot(x, color="r")
+                ln2 = ax.plot(y, color="b")
+                ln3 = ax.plot(z, color="g")
                 ax.set_title(name, fontsize=5)
-                ax.legend(['x', 'y', 'z'], fontsize=5, loc='upper right')
-            elif (name == 'quatOrientation'):
-                data_to_plot = [imudata.positionData.quatOrientation for imudata in self.data]
+                ax.legend(["x", "y", "z"], fontsize=5, loc="upper right")
+            elif name == "quatOrientation":
+                data_to_plot = [
+                    imudata.positionData.quatOrientation for imudata in self.data
+                ]
                 w = [data.w for data in data_to_plot]
                 x = [data.x for data in data_to_plot]
                 y = [data.y for data in data_to_plot]
                 z = [data.z for data in data_to_plot]
-                ax.plot(w, color='k')
-                ax.plot(x, color='r')
-                ax.plot(y, color='g')
-                ax.plot(z, color='b')
-                ax.legend(['w', 'x', 'y', 'z'], fontsize=5, loc='upper right')
-            elif (name == 'eulerOrientation'):
-                data_to_plot = [imudata.positionData.eulerOrientation for imudata in self.data]
+                ax.plot(w, color="k")
+                ax.plot(x, color="r")
+                ax.plot(y, color="g")
+                ax.plot(z, color="b")
+                ax.legend(["w", "x", "y", "z"], fontsize=5, loc="upper right")
+            elif name == "eulerOrientation":
+                data_to_plot = [
+                    imudata.positionData.eulerOrientation for imudata in self.data
+                ]
                 roll = [data.roll for data in data_to_plot]
                 pitch = [data.pitch for data in data_to_plot]
                 yaw = [data.yaw for data in data_to_plot]
-                ax.plot(roll, color='r')
-                ax.plot(pitch, color='g')
-                ax.plot(yaw, color='b')
-                ax.legend(['roll', 'pitch', 'yaw'], fontsize=5, loc='upper right')
+                ax.plot(roll, color="r")
+                ax.plot(pitch, color="g")
+                ax.plot(yaw, color="b")
+                ax.legend(["roll", "pitch", "yaw"], fontsize=5, loc="upper right")
                 # ax.draw_artist(ln1)
                 # ax.draw_artist(ln2)
                 # ax.draw_artist(ln3)
@@ -236,5 +270,5 @@ def create_formatted_table(rowHeaders: List[str], colHeaders: List[str]):
 
 def format_axes(axes: Dict[Axes, str]):
     for axis, name in axes.items():
-        axis.tick_params(axis='both', labelsize=5)
+        axis.tick_params(axis="both", labelsize=5)
         axis.set_title(name, fontsize=5)

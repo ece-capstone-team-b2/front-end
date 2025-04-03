@@ -11,15 +11,30 @@ def unpack_axis3d(data: Axis3d):
 
 
 def get_unpacked_row(data: ImuData):
-    return [*unpack_axis3d(data.accelData), *unpack_axis3d(data.linearAccelData), *unpack_axis3d(data.gravityAccel),
-            *unpack_axis3d(data.gyroData), *unpack_axis3d(data.magData), *unpack_axis3d(data.positionData.position)]
+    return [
+        *unpack_axis3d(data.accelData),
+        *unpack_axis3d(data.linearAccelData),
+        *unpack_axis3d(data.gravityAccel),
+        *unpack_axis3d(data.gyroData),
+        *unpack_axis3d(data.magData),
+        *unpack_axis3d(data.positionData.position),
+    ]
 
 
 if __name__ == "__main__":
     with open(f"out-{datetime.now()}", "w") as output_file:
         writer = csv.writer(output_file)
 
-        writer.writerow(["accelData", "linearAccelData", "gravityAccel", "gyroData", "magData", "positionData"])
+        writer.writerow(
+            [
+                "accelData",
+                "linearAccelData",
+                "gravityAccel",
+                "gyroData",
+                "magData",
+                "positionData",
+            ]
+        )
 
         while True:
             data = read_serial_data("/dev/ttyACM0")

@@ -1,11 +1,22 @@
 from data_view_publisher import DataViewPublisher
 from widgets import DataPageInterface
 from style_sheets import *
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QWidget, QPushButton, QLabel, QButtonGroup, QRadioButton, QTextEdit
+from PyQt6.QtWidgets import (
+    QWidget,
+    QHBoxLayout,
+    QVBoxLayout,
+    QWidget,
+    QPushButton,
+    QLabel,
+    QButtonGroup,
+    QRadioButton,
+    QTextEdit,
+)
 from PyQt6.QtCore import Qt
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 from widgets.leg_display import LegDisplay, FrontLegFunctions, SideLegFunctions
 import random
+
 
 class FeedbackPage(DataPageInterface):
     def __init__(self, dataSource: DataViewPublisher):
@@ -49,7 +60,7 @@ class FeedbackPage(DataPageInterface):
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         selectorBox.setLayout(layout)
         selectorBox.setMinimumHeight(700)
-        
+
         return selectorBox
 
     def createVisualizationBox(self):
@@ -74,7 +85,7 @@ class FeedbackPage(DataPageInterface):
         leftlabel = QLabel("Left")
         leftlabel.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
-        rightlabel = QLabel("Right") 
+        rightlabel = QLabel("Right")
         rightlabel.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
         labelbox = QWidget(self)
@@ -133,23 +144,28 @@ class FeedbackPage(DataPageInterface):
 
     def updateData(self, data):
         # do something with updated data
-        num = random.randint(90,180)
-        num2 = random.uniform(-1,1)
+        num = random.randint(90, 180)
+        num2 = random.uniform(-1, 1)
 
-        self.leftfrontlegfunctions.updateLeg(num,90,num2)
+        self.leftfrontlegfunctions.updateLeg(num, 90, num2)
         self.leftfrontview.updatePoints(self.leftfrontlegfunctions.getPoints())
         self.leftfrontview.update()
 
-        self.rightfrontlegfunctions.updateLeg(num,90,num2)
+        self.rightfrontlegfunctions.updateLeg(num, 90, num2)
         self.rightfrontview.updatePoints(self.rightfrontlegfunctions.getPoints())
         self.rightfrontview.update()
 
-        self.leftsidelegfunctions.updateLeg(num,90,num2)
+        self.leftsidelegfunctions.updateLeg(num, 90, num2)
         self.leftsideview.updatePoints(self.leftsidelegfunctions.getPoints())
         self.leftsideview.update()
 
-        self.rightsidelegfunctions.updateLeg(num,90,num2)
+        self.rightsidelegfunctions.updateLeg(num, 90, num2)
         self.rightsideview.updatePoints(self.rightsidelegfunctions.getPoints())
         self.rightsideview.update()
 
-        self.feedBackText.append("simulated data returned -- knee angle: " + str(num) + " | foot com: " + str(num2))
+        self.feedBackText.append(
+            "simulated data returned -- knee angle: "
+            + str(num)
+            + " | foot com: "
+            + str(num2)
+        )

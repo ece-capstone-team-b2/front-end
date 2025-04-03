@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QWidget, QLabel
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
+
 class HomePage(QWidget):
     def __init__(self):
         super().__init__()

@@ -1,9 +1,18 @@
 import sys
 import numpy as np
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QSlider, QLabel
+from PyQt6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QSlider,
+    QLabel,
+)
 from PyQt6.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
+
 
 class LegVisualizer(QMainWindow):
     def __init__(self):
@@ -16,11 +25,11 @@ class LegVisualizer(QMainWindow):
         self.foot_length = 1
 
         # Default angles (in degrees)
-        self.hip_angle = 90      # Hip (thigh) angle relative to the x-axis.
+        self.hip_angle = 90  # Hip (thigh) angle relative to the x-axis.
         self.hip_y_angle = 0
         self.hip_roll_angle = 0
-        self.knee_angle = 45    # Knee angle relative to the thigh.
-        self.ankle_angle = 90    # Ankle angle relative to the lower leg.
+        self.knee_angle = 45  # Knee angle relative to the thigh.
+        self.ankle_angle = 90  # Ankle angle relative to the lower leg.
 
         # Set up the central widget and layout
         central_widget = QWidget()
@@ -29,7 +38,7 @@ class LegVisualizer(QMainWindow):
 
         # Create a matplotlib figure with a 3D axes
         self.fig = plt.figure(figsize=(10, 10))
-        self.ax = self.fig.add_subplot(111, projection='3d')
+        self.ax = self.fig.add_subplot(111, projection="3d")
         self.canvas = FigureCanvas(self.fig)
         main_layout.addWidget(self.canvas)
 
@@ -104,37 +113,65 @@ class LegVisualizer(QMainWindow):
         self.knee_angle = self.knee_slider.value()
         self.ankle_angle = self.ankle_slider.value()
 
-
         phi_thigh = np.deg2rad(self.hip_angle)
         phi_lower = phi_thigh + np.deg2rad(-1 * self.knee_angle)
-        phi_foot = phi_lower  + np.deg2rad(self.ankle_angle)
+        phi_foot = phi_lower + np.deg2rad(self.ankle_angle)
         roll_angle = np.deg2rad(self.hip_roll_angle)
 
         theta = np.deg2rad(self.hip_y_angle)
-
 
         # Define joint positions:
         # Hip is at the origin.
         hip = np.array([0, 0, 0])
         # Thigh (hip to knee)
-        knee = hip + np.array([self.thigh_length * np.cos(theta) * np.sin(phi_thigh),
-                                 
-                                 self.thigh_length * np.sin(theta) * np.sin(phi_thigh), 
-                                 self.thigh_length * np.cos(phi_thigh)])
+        knee = hip + np.array(
+            [
+                self.thigh_length * np.cos(theta) * np.sin(phi_thigh),
+                self.thigh_length * np.sin(theta) * np.sin(phi_thigh),
+                self.thigh_length * np.cos(phi_thigh),
+            ]
+        )
         # Lower leg (knee to ankle)
-        ankle = knee + np.array([self.lower_leg_length * np.cos(theta) * np.sin(phi_lower),
-                                 
-                                 self.lower_leg_length * np.sin(theta) * np.sin(phi_lower), 
-                                 self.lower_leg_length * np.cos(phi_lower)])
+        ankle = knee + np.array(
+            [
+                self.lower_leg_length * np.cos(theta) * np.sin(phi_lower),
+                self.lower_leg_length * np.sin(theta) * np.sin(phi_lower),
+                self.lower_leg_length * np.cos(phi_lower),
+            ]
+        )
         # Foot (ankle to toe)
-        toe = ankle + np.array([self.foot_length * np.cos(theta) * np.sin(phi_foot),
-                                 
-                                 self.foot_length * np.sin(theta) * np.sin(phi_foot), 
-                                 self.foot_length * np.cos(phi_foot)])
+        toe = ankle + np.array(
+            [
+                self.foot_length * np.cos(theta) * np.sin(phi_foot),
+                self.foot_length * np.sin(theta) * np.sin(phi_foot),
+                self.foot_length * np.cos(phi_foot),
+            ]
+        )
         # Plot the segments as lines
-        self.ax.plot([hip[0], knee[0]], [hip[1], knee[1]], [hip[2], knee[2]], 'r-', lw=3, label="Thigh")
-        self.ax.plot([knee[0], ankle[0]], [knee[1], ankle[1]], [knee[2], ankle[2]], 'g-', lw=3, label="Lower Leg")
-        self.ax.plot([ankle[0], toe[0]], [ankle[1], toe[1]], [ankle[2], toe[2]], 'b-', lw=3, label="Foot")
+        self.ax.plot(
+            [hip[0], knee[0]],
+            [hip[1], knee[1]],
+            [hip[2], knee[2]],
+            "r-",
+            lw=3,
+            label="Thigh",
+        )
+        self.ax.plot(
+            [knee[0], ankle[0]],
+            [knee[1], ankle[1]],
+            [knee[2], ankle[2]],
+            "g-",
+            lw=3,
+            label="Lower Leg",
+        )
+        self.ax.plot(
+            [ankle[0], toe[0]],
+            [ankle[1], toe[1]],
+            [ankle[2], toe[2]],
+            "b-",
+            lw=3,
+            label="Foot",
+        )
 
         # Set plot limits and labels
         total_length = self.thigh_length + self.lower_leg_length + self.foot_length
@@ -147,6 +184,7 @@ class LegVisualizer(QMainWindow):
         self.ax.legend()
 
         self.canvas.draw()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

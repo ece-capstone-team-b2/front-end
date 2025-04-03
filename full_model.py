@@ -1,7 +1,15 @@
 import sys
 import serial
 import numpy as np
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QSlider, QLabel
+from PyQt6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QSlider,
+    QLabel,
+)
 from PyQt6.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
@@ -11,6 +19,7 @@ def list_serial_ports():
     """List available serial ports."""
     ports = serial.tools.list_ports.comports()
     return [port.device for port in ports]
+
 
 def select_serial_port(ports):
     """Ask user to select a serial port."""
@@ -27,17 +36,18 @@ def select_serial_port(ports):
             pass
         print("Invalid selection. Try again.")
 
+
 def rotate_point_around_axis(xyz, axis_phi, axis_theta, rotation_angle_degrees):
     """
-    Rotate a point (x, y, z) by 'rotation_angle_degrees' around an arbitrary axis 
+    Rotate a point (x, y, z) by 'rotation_angle_degrees' around an arbitrary axis
     defined by spherical coordinates (axis_phi, axis_theta).
-    
+
     Parameters:
     - x, y, z: Coordinates of the point.
     - axis_phi: Azimuthal angle (in degrees) of the rotation axis measured from the positive x-axis.
     - axis_theta: Polar angle (in degrees) of the rotation axis measured from the positive z-axis.
     - rotation_angle_degrees: The angle (in degrees) to rotate the point.
-    
+
     Returns:
     A tuple (x_rot, y_rot, z_rot) representing the rotated point.
     """
@@ -47,29 +57,31 @@ def rotate_point_around_axis(xyz, axis_phi, axis_theta, rotation_angle_degrees):
     theta = axis_theta
 
     print(f"Phi {phi}, theta {theta}")
-    
+
     # Convert the spherical axis to a Cartesian unit vector
     u_x = np.sin(theta) * np.cos(phi)
     u_y = np.sin(theta) * np.sin(phi)
     u_z = np.cos(theta)
     u = np.array([u_x, u_y, u_z])
-    
+
     # Ensure the axis is a unit vector (should already be the case from spherical conversion)
     u = u / np.linalg.norm(u)
-    
+
     print(f"Rotating around {u}")
 
     # Convert the rotation angle from degrees to radians
     angle = rotation_angle_degrees
-    
+
     # Define the original point as a numpy array
     v = np.array([x, y, z])
-    
+
     # Apply Rodrigues' rotation formula
-    v_rot = (v * np.cos(angle) +
-             np.cross(u, v) * np.sin(angle) +
-             u * np.dot(u, v) * (1 - np.cos(angle)))
-    
+    v_rot = (
+        v * np.cos(angle)
+        + np.cross(u, v) * np.sin(angle)
+        + u * np.dot(u, v) * (1 - np.cos(angle))
+    )
+
     return np.array([v_rot[0], v_rot[1], v_rot[2]])
 
 
@@ -84,11 +96,11 @@ class LegVisualizer(QMainWindow):
         self.foot_length = 1
 
         # Default angles (in degrees)
-        self.hip_angle = 90      # Hip (thigh) angle relative to the x-axis.
+        self.hip_angle = 90  # Hip (thigh) angle relative to the x-axis.
         self.hip_y_angle = 0
         self.hip_roll_angle = 0
-        self.knee_angle = 45    # Knee angle relative to the thigh.
-        self.ankle_angle = 90    # Ankle angle relative to the lower leg.
+        self.knee_angle = 45  # Knee angle relative to the thigh.
+        self.ankle_angle = 90  # Ankle angle relative to the lower leg.
 
         # Set up the central widget and layout
         central_widget = QWidget()
@@ -97,7 +109,7 @@ class LegVisualizer(QMainWindow):
 
         # Create a matplotlib figure with a 3D axes
         self.fig = plt.figure(figsize=(10, 10))
-        self.ax = self.fig.add_subplot(111, projection='3d')
+        self.ax = self.fig.add_subplot(111, projection="3d")
         self.canvas = FigureCanvas(self.fig)
         main_layout.addWidget(self.canvas)
 
@@ -161,13 +173,14 @@ class LegVisualizer(QMainWindow):
         # Draw the initial plot
         self.update_plot()
 
-    def rot(self,xyz, theta):
+    def rot(self, xyz, theta):
         (x, y, z) = xyz
-        return np.array([
-            x,
-            y * np.cos(theta) - z * np.sin(theta),
-            y * np.sin(theta) + z * np.cos(theta)
-        ]
+        return np.array(
+            [
+                x,
+                y * np.cos(theta) - z * np.sin(theta),
+                y * np.sin(theta) + z * np.cos(theta),
+            ]
         )
 
     def update_plot(self):
@@ -182,35 +195,70 @@ class LegVisualizer(QMainWindow):
 
         phi_thigh = np.deg2rad(self.hip_angle)
         phi_lower = phi_thigh + np.deg2rad(-1 * self.knee_angle)
-        phi_foot = phi_lower  + np.deg2rad(self.ankle_angle)
+        phi_foot = phi_lower + np.deg2rad(self.ankle_angle)
         roll_angle = np.deg2rad(self.hip_roll_angle)
 
         print(f"Roll: {self.hip_roll_angle}")
         theta = np.deg2rad(self.hip_y_angle)
 
-
         # Define joint positions:
         # Hip is at the origin.
         hip = np.array([0, 0, 0])
         # Thigh (hip to knee)
-        knee = hip + np.array([self.thigh_length * np.cos(theta) * np.sin(phi_thigh),
-                                 
-                                 self.thigh_length * np.sin(theta) * np.sin(phi_thigh), 
-                                 self.thigh_length * np.cos(phi_thigh)])
+        knee = hip + np.array(
+            [
+                self.thigh_length * np.cos(theta) * np.sin(phi_thigh),
+                self.thigh_length * np.sin(theta) * np.sin(phi_thigh),
+                self.thigh_length * np.cos(phi_thigh),
+            ]
+        )
         # Lower leg (knee to ankle)
-        ankle = knee + rotate_point_around_axis([self.lower_leg_length * np.cos(theta) * np.sin(phi_lower),
-                                 
-                                 self.lower_leg_length * np.sin(theta) * np.sin(phi_lower), 
-                                 self.lower_leg_length * np.cos(phi_lower)], theta, phi_thigh, roll_angle)
+        ankle = knee + rotate_point_around_axis(
+            [
+                self.lower_leg_length * np.cos(theta) * np.sin(phi_lower),
+                self.lower_leg_length * np.sin(theta) * np.sin(phi_lower),
+                self.lower_leg_length * np.cos(phi_lower),
+            ],
+            theta,
+            phi_thigh,
+            roll_angle,
+        )
         # Foot (ankle to toe)
-        toe = ankle + rotate_point_around_axis([self.foot_length * np.cos(theta) * np.sin(phi_foot),
-                                 
-                                  self.foot_length * np.sin(theta) * np.sin(phi_foot), 
-                                  self.foot_length * np.cos(phi_foot)], theta, phi_thigh, roll_angle)
+        toe = ankle + rotate_point_around_axis(
+            [
+                self.foot_length * np.cos(theta) * np.sin(phi_foot),
+                self.foot_length * np.sin(theta) * np.sin(phi_foot),
+                self.foot_length * np.cos(phi_foot),
+            ],
+            theta,
+            phi_thigh,
+            roll_angle,
+        )
         # Plot the segments as lines
-        self.ax.plot([hip[0], knee[0]], [hip[1], knee[1]], [hip[2], knee[2]], 'r-', lw=3, label="Thigh")
-        self.ax.plot([knee[0], ankle[0]], [knee[1], ankle[1]], [knee[2], ankle[2]], 'g-', lw=3, label="Lower Leg")
-        self.ax.plot([ankle[0], toe[0]], [ankle[1], toe[1]], [ankle[2], toe[2]], 'b-', lw=3, label="Foot")
+        self.ax.plot(
+            [hip[0], knee[0]],
+            [hip[1], knee[1]],
+            [hip[2], knee[2]],
+            "r-",
+            lw=3,
+            label="Thigh",
+        )
+        self.ax.plot(
+            [knee[0], ankle[0]],
+            [knee[1], ankle[1]],
+            [knee[2], ankle[2]],
+            "g-",
+            lw=3,
+            label="Lower Leg",
+        )
+        self.ax.plot(
+            [ankle[0], toe[0]],
+            [ankle[1], toe[1]],
+            [ankle[2], toe[2]],
+            "b-",
+            lw=3,
+            label="Foot",
+        )
 
         # Set plot limits and labels
         total_length = self.thigh_length + self.lower_leg_length + self.foot_length
@@ -223,6 +271,7 @@ class LegVisualizer(QMainWindow):
         self.ax.legend()
 
         self.canvas.draw()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

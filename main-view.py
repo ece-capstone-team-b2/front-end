@@ -13,6 +13,7 @@ import sys
 import serial
 import struct
 
+
 class DataCaptureThread(QThread):
     def __init__(self):
         QThread.__init__(self)
@@ -20,6 +21,7 @@ class DataCaptureThread(QThread):
 
     def run(self):
         self.capture = True
+
 
 class Page:
     def __init__(self, dataSource: DataViewPublisher):
@@ -47,7 +49,7 @@ class Page:
         # showing the window
         self.window.setLayout(self.layout)
         self.window.show()
-    
+
     # switch to the provided page
     def showPage(self, page):
         for p in self.pages:
@@ -58,7 +60,7 @@ class Page:
     # start the application
     def startApp(self):
         self.app.exec()
-    
+
     # set up the pages and connect them to their corresponding buttons
     def setUpPages(self):
         self.homePage = HomePage()
@@ -72,16 +74,17 @@ class Page:
         button_to_page = {
             self.menuBar.homeButton: self.homePage,
             self.menuBar.feedbackButton: self.feedbackPage,
-            self.menuBar.rawDataButton: self.rawDataPage
+            self.menuBar.rawDataButton: self.rawDataPage,
         }
 
         for button, currentPage in button_to_page.items():
-            button.clicked.connect(lambda _, page = currentPage: self.showPage(page))
+            button.clicked.connect(lambda _, page=currentPage: self.showPage(page))
 
     # set up the menu of buttons
     def setUpMenu(self):
         self.menuBar = MenuBar()
         self.layout.addWidget(self.menuBar)
+
 
 dataSource = DataViewPublisher()
 page = Page(dataSource)

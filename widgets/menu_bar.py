@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout, QWidget, QPushButton
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
+
 class MenuBar(QWidget):
     def __init__(self):
         super().__init__()
@@ -21,6 +22,5 @@ class MenuBar(QWidget):
             button.setFixedSize(100, 25)
             button.setFont(QFont("Times", 10))
             layout.addWidget(button)
-            
-        self.setLayout(layout)
 
+        self.setLayout(layout)
