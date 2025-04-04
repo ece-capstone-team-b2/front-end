@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QWidget, QPushButton
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import QHBoxLayout, QPushButton, QWidget
 
 
 class MenuBar(QWidget):
@@ -13,21 +13,21 @@ class MenuBar(QWidget):
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.homeButton = QPushButton("Home")
+        self.dataButton = QPushButton("Data Source")
         self.feedbackButton = QPushButton("Feedback")
         self.ankleImuDataButton = QPushButton("Ankle IMU")
         self.kneeImuDataButton = QPushButton("Knee IMU")
         self.kneeAngleDataButton = QPushButton("Knee Angle")
         self.feetDataButton = QPushButton("Feet Pressure")
-        self.rawDataButton = QPushButton("Raw Data")
 
         menuButtons = [
             self.homeButton,
+            self.dataButton,
             self.feedbackButton,
             self.ankleImuDataButton,
             self.kneeImuDataButton,
             self.kneeAngleDataButton,
             self.feetDataButton,
-            self.rawDataButton,
         ]
 
         for button in menuButtons:

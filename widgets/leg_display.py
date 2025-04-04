@@ -1,11 +1,11 @@
-from abc import abstractmethod
 import math
-from PyQt6.QtOpenGLWidgets import QOpenGLWidget
-from OpenGL.GL import *
-from typing import Tuple
 import random
+from abc import abstractmethod
+from typing import Tuple
 
 import numpy as np
+from OpenGL.GL import *
+from PyQt6.QtOpenGLWidgets import QOpenGLWidget
 
 
 class LegDisplay(

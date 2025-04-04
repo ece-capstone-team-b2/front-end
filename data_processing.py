@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from data_structures import *
 
+from data_structures import *
 
 LOW_EXTRAPOLATION_FORMULA = lambda x: 95220 + -20661 * x + 1269 * (x**2)
 
@@ -127,6 +127,8 @@ class ProcessedInsoleData:
     calculatedForces: tuple[float, float, float, float, float, float, float, float]
     forceCenterX: float  # In cm
     forceCenterY: float  # In cm
+    totalForce: float
+    timestamp: float
 
 
 @dataclass
@@ -134,13 +136,22 @@ class ProcessedFlexData:
     nodeId: int
     raw: FlexData
     bendAngleDegrees: float
+    timestamp: float
+
+
+def process_imu_data(imu_data: ImuData) -> ImuData:
+    # TODO: Orientation quaternion fixes
+    return imu_data
 
 
 def process_flex_data(flex_data: FlexData) -> ProcessedFlexData:
     resistance = flex_data.flexData.calculatedResistance
 
     return ProcessedFlexData(
-        nodeId=flex_data.nodeId, raw=flex_data, bendAngleDegrees=resistance
+        nodeId=flex_data.nodeId,
+        raw=flex_data,
+        bendAngleDegrees=resistance,
+        timestamp=flex_data.timestamp,
     )
 
 
@@ -160,8 +171,6 @@ def process_insole_data(insole_data: InsoleData, left_foot) -> ProcessedInsoleDa
         calculatedForces=calculatedForces,
         forceCenterX=cx,
         forceCenterY=cy,
+        totalForce=sum(calculatedForces),
+        timestamp=insole_data.timestamp,
     )
-
-
-if __name__ == "__main__":
-    print(linear_interpolate(50000))

@@ -1,22 +1,23 @@
 import sys
 import time
-import serial
-from serial.tools import list_ports
-import numpy as np
-from PyQt6.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QSlider,
-    QLabel,
-)
-from data_logging import DataLogger
-from PyQt6.QtCore import Qt, QTimer
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
+import numpy as np
+import serial
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QSlider,
+    QVBoxLayout,
+    QWidget,
+)
+from serial.tools import list_ports
+
+from data_logging import DataLogger
 from quaternion_math import *
 from serial_port_capture import *
 
@@ -229,11 +230,11 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     queue = Queue()
     file_prefix = "log_full_data_2"
-    datalogger = DataLogger(csv_file=f"{file_prefix}.csv")
+    datalogger = DataLogger(csv_file=f"{file_prefix}adsfas.csv")
     window = LegVisualizer(queue, datalogger)
 
     serial_monitor = SerialPortCapture(
-        serial.Serial(selected_port, 115200, timeout=1), queue, f"{file_prefix}.bin"
+        serial.Serial(selected_port, 115200, timeout=1), queue
     )
     window.show()
     serial_monitor.start()

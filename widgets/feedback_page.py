@@ -1,25 +1,25 @@
-from data_view_publisher import DataViewPublisher
-from widgets import DataPageInterface
-from style_sheets import *
-from PyQt6.QtWidgets import (
-    QWidget,
-    QHBoxLayout,
-    QVBoxLayout,
-    QWidget,
-    QPushButton,
-    QLabel,
-    QButtonGroup,
-    QRadioButton,
-    QTextEdit,
-)
+import random
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
-from widgets.leg_display import LegDisplay, FrontLegFunctions, SideLegFunctions
-import random
+from PyQt6.QtWidgets import (
+    QButtonGroup,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QRadioButton,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
+
+from style_sheets import *
+from widgets import DataPageInterface
+from widgets.leg_display import FrontLegFunctions, LegDisplay, SideLegFunctions
 
 
 class FeedbackPage(DataPageInterface):
-    def __init__(self, dataSource: DataViewPublisher, visible: bool = False):
+    def __init__(self, dataSource, visible: bool = False):
         super().__init__()
         self.setup()
         self.selectedExercise = None
@@ -78,8 +78,8 @@ class FeedbackPage(DataPageInterface):
         self.leftfrontview = LegDisplay(self.parent)
         self.rightfrontview = LegDisplay(self.parent)
 
-        self.leftsidelegfunctions = SideLegFunctions('left')
-        self.rightsidelegfunctions = SideLegFunctions('right')
+        self.leftsidelegfunctions = SideLegFunctions("left")
+        self.rightsidelegfunctions = SideLegFunctions("right")
         self.leftsideview = LegDisplay(self.parent)
         self.rightsideview = LegDisplay(self.parent)
 
@@ -141,6 +141,7 @@ class FeedbackPage(DataPageInterface):
             self.startButton.setText("Stop")
         else:
             self.startButton.setText("Start")
+        self.dataSource.read_from_bin_file("log_full_data_2.bin")
         self.dataSource.toggleCollectData(self.selectedExercise)
 
     def updateData(self, data):

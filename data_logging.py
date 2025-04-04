@@ -1,7 +1,8 @@
-import time
-from data_structures import *
-from data_processing import *
 import csv
+import time
+
+from data_processing import *
+from data_structures import *
 
 
 def get_imu_csv_columns(node_id: int) -> list[str]:
@@ -61,6 +62,7 @@ def get_insole_csv_columns(node_id: int) -> list[str]:
     # Center of pressure
     columns.append(f"{prefix}_forceCenterX")
     columns.append(f"{prefix}_forceCenterY")
+    columns.append(f"{prefix}_totalForce")
 
     return columns
 
@@ -112,6 +114,7 @@ def flatten_processed_insole_data(data: ProcessedInsoleData) -> list[float]:
     # Center of pressure
     values.append(data.forceCenterX)
     values.append(data.forceCenterY)
+    values.append(data.totalForce)
 
     return values
 
@@ -142,11 +145,15 @@ class DataLogger:
             accelCalibration=0,
             gyroCalibration=0,
             magCalibration=0,
+            timestamp=0,
         )
         empty_flex = ProcessedFlexData(
             nodeId=0,
-            raw=FlexData(nodeId=0, flexData=VoltageDividerData(0, 0.0, 0.0)),
+            raw=FlexData(
+                nodeId=0, flexData=VoltageDividerData(0, 0.0, 0.0), timestamp=0
+            ),
             bendAngleDegrees=0.0,
+            timestamp=0,
         )
         empty_insole = ProcessedInsoleData(
             nodeId=0,
@@ -155,10 +162,13 @@ class DataLogger:
                 insoleData=tuple(
                     VoltageDividerData(0, 0.0, 0.0) for _ in range(NUM_INSOLE_PRESSURE)
                 ),
+                timestamp=0,
             ),
             calculatedForces=tuple(0.0 for _ in range(NUM_INSOLE_PRESSURE)),
             forceCenterX=0.0,
             forceCenterY=0.0,
+            totalForce=0.0,
+            timestamp=0,
         )
         self.imu_data = [empty_imu, empty_imu, empty_imu, empty_imu]
         self.flex_data = [empty_flex, empty_flex]
@@ -180,10 +190,10 @@ class DataLogger:
         elif isinstance(data, ProcessedInsoleData):
             self.insole_data[device_num - 3] = data
         else:
-            print("Invalid packet type")
+            print("Invalid packet type", data)
 
         columns = (
-            [(time.time() * 1000) - self.start_time]
+            [data.timestamp]
             + flatten_imu_data(self.imu_data[0])
             + flatten_processed_flex_data(self.flex_data[0])
             + flatten_imu_data(self.imu_data[1])

@@ -1,7 +1,12 @@
+import struct
 from collections import namedtuple
 from typing import NamedTuple
-import struct
 
+import numpy as np
+
+IMU_DATA = 0
+KNEE_FLEX = 1
+INSOLE_FORCE = 2
 
 Axis3d = namedtuple("Axis3d", ["x", "y", "z"])
 Quaternion = namedtuple("Quaternion", ["w", "x", "y", "z"])
@@ -35,6 +40,7 @@ class ImuData(NamedTuple):
     accelCalibration: int
     gyroCalibration: int
     magCalibration: int
+    timestamp: float
 
 
 voltage_divider_struct_format = "< I 2d"
@@ -43,6 +49,7 @@ voltage_divider_struct_format = "< I 2d"
 class FlexData(NamedTuple):
     nodeId: int
     flexData: VoltageDividerData
+    timestamp: float
 
 
 NUM_INSOLE_PRESSURE = 8
@@ -60,6 +67,7 @@ class InsoleData(NamedTuple):
         VoltageDividerData,
         VoltageDividerData,
     ]
+    timestamp: float
 
 
 def unpack_insole_data(binary_data: bytes) -> InsoleData:
@@ -84,7 +92,7 @@ def unpack_insole_data(binary_data: bytes) -> InsoleData:
             )
         )
 
-    return InsoleData(nodeId, insoleData)
+    return InsoleData(nodeId, insoleData, 0)
 
 
 def unpack_flex_data(binary_data: bytes) -> FlexData:
@@ -99,7 +107,7 @@ def unpack_flex_data(binary_data: bytes) -> FlexData:
     unpacked = struct.unpack(voltage_divider_struct_format, binary_data)
     flexData = VoltageDividerData(*unpacked)
 
-    return FlexData(nodeId, flexData)
+    return FlexData(nodeId, flexData, 0)
 
 
 def unpack_imu_data(binary_data: bytes) -> ImuData:
@@ -138,4 +146,43 @@ def unpack_imu_data(binary_data: bytes) -> ImuData:
         accelCalibration,
         gyroCalibration,
         magCalibration,
+        0,
     )
+
+
+from collections import deque
+
+
+import numpy as np
+
+
+class CappedList:
+    def __init__(self, max_length=100):
+        self.max_length = max_length
+        self.data = np.empty(max_length, dtype=float)
+        self.size = 0
+        self.start = 0  # circular buffer start index
+
+    def append(self, value):
+        idx = (self.start + self.size) % self.max_length
+        if self.size < self.max_length:
+            self.data[idx] = value
+            self.size += 1
+        else:
+            self.data[self.start] = value
+            self.start = (self.start + 1) % self.max_length
+
+    def __getitem__(self, index):
+        if not 0 <= index < self.size:
+            raise IndexError("index out of bounds")
+        return self.data[(self.start + index) % self.max_length]
+
+    def __len__(self):
+        return self.size
+
+    def __array__(self):
+        if self.start + self.size <= self.max_length:
+            return self.data[self.start : self.start + self.size]
+        else:
+            end = (self.start + self.size) % self.max_length
+            return np.concatenate((self.data[self.start :], self.data[:end]))
