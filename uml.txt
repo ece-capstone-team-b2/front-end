@@ -1,0 +1,181 @@
+@startuml
+class DataPageInterface {
+    updateData()
+        __init__()
+}
+QWidget <|-- DataPageInterface
+class FeedbackPage {
+    setup()
+    createExerciseSelector()
+    createVisualizationBox()
+    createFeedbackBox()
+    updateSelectedExercise()
+    startButtonPressed()
+    updateData()
+        selectedExercise
+    dataSource
+    exerciseSelector
+    visualizationBox
+    feedbackBox
+    squatsButton
+    lungeButton
+    parent
+    leftfrontlegfunctions
+    rightfrontlegfunctions
+    leftfrontview
+    rightfrontview
+    leftsidelegfunctions
+    rightsidelegfunctions
+    leftsideview
+    rightsideview
+    feedBackText : QTextEdit 
+    startButton
+    selectedExercise
+    __init__(feedBackText: QTextEdit )
+}
+DataPageInterface <|-- FeedbackPage
+FeedbackPage --> QTextEdit
+class HomePage {
+    setup()
+        __init__()
+}
+QWidget <|-- HomePage
+class LegDisplay {
+    initializeGL()
+    updatePoints()
+    paintGL()
+    resizeGL()
+        points
+    __init__()
+}
+class LegFunctions {
+    updateLeg()
+    getVerticalPoints()
+    getPoints()
+        shank_start
+    foot_top
+    hip_width
+    thigh_width
+    knee_width
+    shank_width
+    ankle_width
+    step_size
+    knee_deg
+    ankle_deg
+    foot_com
+    knee_deg
+    ankle_deg
+    foot_com
+    __init__()
+}
+class SideLegFunctions {
+    getPoints()
+        __init__()
+}
+class FrontLegFunctions {
+    getPoints()
+        __init__()
+}
+LegFunctions <|-- SideLegFunctions
+LegFunctions <|-- FrontLegFunctions
+class MenuBar {
+    setup()
+        homeButton
+    feedbackButton
+    rawDataButton
+    __init__()
+}
+QWidget <|-- MenuBar
+class RawDataPage {
+    setup()
+    setup_graphs()
+    setup_table()
+    update_tables()
+    populate_axis3d_row()
+    populate_position()
+    updateData()
+    update_graphs()
+    create_formatted_table()
+    format_axes()
+        sensor_data_collector
+    data_source
+    data : List[ImuData] 
+    rawData2
+    fig1
+    canvas1
+    accel_axes
+    linear_accel_axes
+    gravity_accel_axes
+    gyro_axes
+    fig2
+    canvas2
+    mag_axes
+    position_axes
+    quat_axes
+    euler_axes
+    accel_axes :  
+    linear_accel_axes :  
+    gravity_accel_axes :  
+    gyro_axes :  
+    mag_axes :  
+    position_axes :  
+    quat_axes :  
+    euler_axes :  
+    axis3d_table
+    position_table
+    quat_table
+    euler_table
+    slider
+    tables_imu
+    __init__(data: List[ImuData] , accel_axes:  , linear_accel_axes:  , gravity_accel_axes:  , gyro_axes:  , mag_axes:  , position_axes:  , quat_axes:  , euler_axes:  )
+}
+DataPageInterface <|-- RawDataPage
+RawDataPage --> ImuData
+class PositionData {
+        __init__()
+}
+class ImuData {
+        __init__()
+}
+NamedTuple <|-- PositionData
+NamedTuple <|-- ImuData
+class DataViewPublisher {
+    subscribe()
+    retrieveData()
+    notifySubscribers()
+    toggleCollectData()
+        sensorDataCollector
+    subscribers : List[DataPageInterface]
+    activeTimer
+    timer
+    activeTimer
+    activeTimer
+    __init__(subscribers: List[DataPageInterface])
+}
+DataViewPublisher --> DataPageInterface
+class Page {
+    showPage()
+    startApp()
+    setUpPages()
+    setUpMenu()
+        dataSource
+    app
+    window
+    layout
+    homePage
+    feedbackPage
+    rawDataPage
+    menuBar
+    __init__()
+}
+class SensorDataCollector {
+    readData()
+    read_bin_chunks()
+    read_data()
+    unpack_imu_data()
+        sensor
+    data_generator
+    __init__()
+}
+
+@enduml

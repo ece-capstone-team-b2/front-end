@@ -32,7 +32,7 @@ from widgets import DataPageInterface
 
 
 class RawDataPage(DataPageInterface):
-    def __init__(self, data_source: DataViewPublisher):
+    def __init__(self, data_source: DataViewPublisher, visible: bool):
         super().__init__()
         self.sensor_data_collector = SensorDataCollector()
         self.data_source = data_source
@@ -43,11 +43,7 @@ class RawDataPage(DataPageInterface):
 
         self.port_dropdown = QComboBox()
         self.record_button = QPushButton()
-
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.capture_data)
-        self.timer.start(100)
-
+        self.visible = visible
         self.setup()
 
     def capture_data(self):
@@ -202,58 +198,59 @@ class RawDataPage(DataPageInterface):
         self.update_graphs()
 
     def update_graphs(self):
-        for ax in self.fig1.axes + self.fig2.axes:
-            name = self.axes_to_name_mapping[ax]
-            ax.cla()
-            if name not in ["quatOrientation", "eulerOrientation"]:
-                data_to_plot = [
-                    (
-                        getattr(imudata, name)
-                        if name != "position"
-                        else imudata.positionData.position
-                    )
-                    for imudata in self.data
-                ]
-                # data_to_plot = [getattr(imudata, name) for imudata in self.data if name ]
-                x = [data.x for data in data_to_plot]
-                y = [data.y for data in data_to_plot]
-                z = [data.z for data in data_to_plot]
-                ln1 = ax.plot(x, color="r")
-                ln2 = ax.plot(y, color="b")
-                ln3 = ax.plot(z, color="g")
-                ax.set_title(name, fontsize=5)
-                ax.legend(["x", "y", "z"], fontsize=5, loc="upper right")
-            elif name == "quatOrientation":
-                data_to_plot = [
-                    imudata.positionData.quatOrientation for imudata in self.data
-                ]
-                w = [data.w for data in data_to_plot]
-                x = [data.x for data in data_to_plot]
-                y = [data.y for data in data_to_plot]
-                z = [data.z for data in data_to_plot]
-                ax.plot(w, color="k")
-                ax.plot(x, color="r")
-                ax.plot(y, color="g")
-                ax.plot(z, color="b")
-                ax.legend(["w", "x", "y", "z"], fontsize=5, loc="upper right")
-            elif name == "eulerOrientation":
-                data_to_plot = [
-                    imudata.positionData.eulerOrientation for imudata in self.data
-                ]
-                roll = [data.roll for data in data_to_plot]
-                pitch = [data.pitch for data in data_to_plot]
-                yaw = [data.yaw for data in data_to_plot]
-                ax.plot(roll, color="r")
-                ax.plot(pitch, color="g")
-                ax.plot(yaw, color="b")
-                ax.legend(["roll", "pitch", "yaw"], fontsize=5, loc="upper right")
-                # ax.draw_artist(ln1)
-                # ax.draw_artist(ln2)
-                # ax.draw_artist(ln3)
-        # self.fig1.canvas.blit(self.fig1.bbox)
-        # self.fig1.canvas.flush_events()
-        self.canvas1.draw()
-        self.canvas2.draw()
+        if self.visible:
+            for ax in self.fig1.axes + self.fig2.axes:
+                name = self.axes_to_name_mapping[ax]
+                ax.cla()
+                if name not in ["quatOrientation", "eulerOrientation"]:
+                    data_to_plot = [
+                        (
+                            getattr(imudata, name)
+                            if name != "position"
+                            else imudata.positionData.position
+                        )
+                        for imudata in self.data
+                    ]
+                    # data_to_plot = [getattr(imudata, name) for imudata in self.data if name ]
+                    x = [data.x for data in data_to_plot]
+                    y = [data.y for data in data_to_plot]
+                    z = [data.z for data in data_to_plot]
+                    ln1 = ax.plot(x, color="r")
+                    ln2 = ax.plot(y, color="b")
+                    ln3 = ax.plot(z, color="g")
+                    ax.set_title(name, fontsize=5)
+                    ax.legend(["x", "y", "z"], fontsize=5, loc="upper right")
+                elif name == "quatOrientation":
+                    data_to_plot = [
+                        imudata.positionData.quatOrientation for imudata in self.data
+                    ]
+                    w = [data.w for data in data_to_plot]
+                    x = [data.x for data in data_to_plot]
+                    y = [data.y for data in data_to_plot]
+                    z = [data.z for data in data_to_plot]
+                    ax.plot(w, color="k")
+                    ax.plot(x, color="r")
+                    ax.plot(y, color="g")
+                    ax.plot(z, color="b")
+                    ax.legend(["w", "x", "y", "z"], fontsize=5, loc="upper right")
+                elif name == "eulerOrientation":
+                    data_to_plot = [
+                        imudata.positionData.eulerOrientation for imudata in self.data
+                    ]
+                    roll = [data.roll for data in data_to_plot]
+                    pitch = [data.pitch for data in data_to_plot]
+                    yaw = [data.yaw for data in data_to_plot]
+                    ax.plot(roll, color="r")
+                    ax.plot(pitch, color="g")
+                    ax.plot(yaw, color="b")
+                    ax.legend(["roll", "pitch", "yaw"], fontsize=5, loc="upper right")
+                    # ax.draw_artist(ln1)
+                    # ax.draw_artist(ln2)
+                    # ax.draw_artist(ln3)
+            # self.fig1.canvas.blit(self.fig1.bbox)
+            # self.fig1.canvas.flush_events()
+            self.canvas1.draw()
+            self.canvas2.draw()
 
 
 def create_formatted_table(rowHeaders: List[str], colHeaders: List[str]):
