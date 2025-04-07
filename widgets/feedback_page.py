@@ -39,6 +39,7 @@ class FeedbackPage(DataPageInterface):
         self.squat_tracker = squat_tracker
         self.data_processor = data_processor
         self.data_processor.add_callback(self.new_data)
+        self.squat_tracker.request_callback(self.squat_performed)
         self.squats_performed = 0
         self.squats_attempted = 0
 
@@ -131,9 +132,11 @@ class FeedbackPage(DataPageInterface):
         layout.addWidget(label)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         feedbackText = QTextEdit()
+        feedbackText.setStyleSheet(
+            "QTextEdit { font-size: 30pt; color: black; background-color: lightblue;}"
+        )
         feedbackText.setText("Please select an exercise")
         feedbackText.setReadOnly(True)
-        feedbackText.setStyleSheet(PLACEHOLDER_STYLE_SHEET)
         self.feedBackText: QTextEdit = feedbackText
         self.startButton = QPushButton()
         self.startButton.setText("Start")
@@ -165,38 +168,42 @@ class FeedbackPage(DataPageInterface):
             self.squats_attempted = 0
 
     def squat_performed(self, results):
-        self.feedbackText.clear()
-        self.feedbackText.append(
-            f"Squats attempted: {self.squats_attempted}, perfect form: {self.squats_performed}"
-        )
+        print("squat performed")
+
+        self.feedBackText.clear()
+
         if results["max_l_angle"] < 60 or results["max_r_angle"] < 60:
-            self.feedbackText.append(
+            self.feedBackText.append(
                 "Squat too shallow! Try to bend your knees closer to 90 degrees!"
             )
-        elif results["max_l_angle"] > 140 or results["max_r_angle"] > 140:
-            self.feedbackText.append(
+        elif results["max_l_angle"] > 100 or results["max_r_angle"] > 100:
+            self.feedBackText.append(
                 "Squat too deep! Try to bend your knees closer to 90 degrees!"
             )
-        elif results["average_thigh_angle"] > 45:
-            self.feedbackText.append(
-                "The angle between your legs is too high! Try to make your legs parallel to each other during the squat motion."
+        elif results["average_thigh_angle"] > 0:
+            self.feedBackText.append(
+                "The angle between your legs is too high! \nTry to make your legs parallel to each other during the squat motion."
             )
-        elif results["average_r_foot_cy"] < -5 or results["average_r_foot_cy"] < -5:
-            self.feedbackText.append(
+        elif results["average_r_foot_cy"] < 0 or results["average_r_foot_cy"] < 0:
+            self.feedBackText.append(
                 ""
                 "Your weight is too far forward! Try to lean back more and balance right over your ankles."
             )
-        elif results["average_r_foot_cy"] > 8 or results["average_r_foot_cy"] > 8:
-            self.feedbackText.append(
+        elif results["average_r_foot_cy"] > 9 or results["average_r_foot_cy"] > 9:
+            self.feedBackText.append(
                 ""
                 "Your weight is too far backwards! Try to lean forward more and balance right over your ankles."
             )
         else:
-            self.feedbackText.append("Good form!")
+            self.feedBackText.append("Good form!")
             self.squats_performed += 1
         self.squats_attempted += 1
+        self.feedBackText.append(
+            f"\n\nSquats attempted: {self.squats_attempted}, good form: {self.squats_performed}"
+        )
 
     def new_data(self, metrics: DerivedLegMetrics):
+
         if time.time() * 1000 - self.last_draw_time < 300:
             return
         self.last_draw_time = time.time() * 1000
@@ -209,9 +216,6 @@ class FeedbackPage(DataPageInterface):
         right_knee = max(min(180, metrics.r_knee_angle + 90), 0)
         right_foot_balance_y = metrics.r_force_cy / 11.75
         right_foot_balance_x = metrics.r_force_cx / 4.5
-
-        print(left_knee)
-        print(right_knee)
 
         self.leftfrontlegfunctions.updateLeg(left_knee, 90, left_foot_balance_x)
         self.leftfrontview.updatePoints(self.leftfrontlegfunctions.getPoints())

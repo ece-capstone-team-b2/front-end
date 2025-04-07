@@ -23,7 +23,7 @@ class SquatTracker:
         ma_window=10,
         slope_window=10,
         squat_threshold=40,
-        stand_threshold=20,
+        stand_threshold=40,
         slope_threshold=0.5,
     ):
         self.data_processor = data_processor
@@ -114,10 +114,18 @@ class SquatTracker:
         if self.state != new_state:
             self.last_state = self.state
             self.state = new_state
-        print(self.rep_count)
+            if self.state == "Descending":
+                self.l_pressures = []
+                self.r_pressures = []
+                self.l_knee_angles = []
+                self.r_knee_angles = []
+                self.l_cy = []
+                self.r_cy = []
+                self.thigh_angles = []
         self.detect_rep()
 
     def publish_squat_metrics(self):
+
         avg_l_knee_angles = sliding_average(self.l_knee_angles, 5)
         print("Average left knee angle over last 5 readings:", avg_l_knee_angles)
 
@@ -153,11 +161,19 @@ class SquatTracker:
             "max_l_angle": max_l_angle,
             "max_r_angle": max_r_angle,
             "average_thigh_angle": average_thigh_angle,
-            "avg_r_foot_force": avg_r_foot_force,
-            "avg_l_foot_force": avg_l_foot_force,
-            "avg_r_foot_cy": avg_r_foot_cy,
-            "avg_l_foot_cy": avg_l_foot_cy,
+            "average_r_foot_force": avg_r_foot_force,
+            "average_l_foot_force": avg_l_foot_force,
+            "average_r_foot_cy": avg_r_foot_cy,
+            "average_l_foot_cy": avg_l_foot_cy,
         }
+
+        self.l_pressures = []
+        self.r_pressures = []
+        self.l_knee_angles = []
+        self.r_knee_angles = []
+        self.l_cy = []
+        self.r_cy = []
+        self.thigh_angles = []
 
         for callback in self.callbacks:
             callback(results)

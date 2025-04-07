@@ -129,7 +129,7 @@ class DataProcessor:
 
             flex_knee_angle = data["flex_knee_angle"]
 
-            average_angle = imu_knee_angle
+            average_angle = (imu_knee_angle + flex_knee_angle) / 2
 
             if side == "left":
                 metrics.l_knee_angle = average_angle
