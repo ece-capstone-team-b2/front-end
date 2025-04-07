@@ -1,4 +1,5 @@
 import random
+import time
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget
@@ -13,19 +14,33 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from data_processing import DerivedLegMetrics
+from data_processor import DataProcessor
+from squat_tracking import SquatTracker
 from style_sheets import *
 from widgets import DataPageInterface
 from widgets.leg_display import FrontLegFunctions, LegDisplay, SideLegFunctions
 
 
 class FeedbackPage(DataPageInterface):
-    def __init__(self, dataSource, visible: bool = False):
+    def __init__(
+        self,
+        dataSource,
+        squat_tracker: SquatTracker,
+        data_processor: DataProcessor,
+        visible: bool = False,
+    ):
         super().__init__()
         self.setup()
         self.selectedExercise = None
         self.dataSource = dataSource
         self.dataSource.subscribe(self)
         self.visible = visible
+        self.squat_tracker = squat_tracker
+        self.data_processor = data_processor
+        self.data_processor.add_callback(self.new_data)
+        self.squats_performed = 0
+        self.squats_attempted = 0
 
     def setup(self):
         layout = QHBoxLayout()
@@ -40,6 +55,7 @@ class FeedbackPage(DataPageInterface):
         layout.setStretchFactor(self.visualizationBox, 2)
         layout.setStretchFactor(self.feedbackBox, 2)
         self.setLayout(layout)
+        self.last_draw_time = time.time() * 1000
 
     def createExerciseSelector(self):
         selectorBox = QWidget(self)
@@ -139,35 +155,76 @@ class FeedbackPage(DataPageInterface):
         elif self.startButton.text() == "Start":
             self.feedBackText.clear()
             self.startButton.setText("Stop")
+            self.squat_tracker.reset()
+            self.squat_tracker.start()
         else:
             self.startButton.setText("Start")
-        self.dataSource.read_from_bin_file("log_full_data_2.bin")
-        self.dataSource.toggleCollectData(self.selectedExercise)
+            self.squat_tracker.reset()
+            self.squat_tracker.start()
+            self.squats_performed = 0
+            self.squats_attempted = 0
 
-    def updateData(self, data):
+    def squat_performed(self, results):
+        self.feedbackText.clear()
+        self.feedbackText.append(
+            f"Squats attempted: {self.squats_attempted}, perfect form: {self.squats_performed}"
+        )
+        if results["max_l_angle"] < 60 or results["max_r_angle"] < 60:
+            self.feedbackText.append(
+                "Squat too shallow! Try to bend your knees closer to 90 degrees!"
+            )
+        elif results["max_l_angle"] > 140 or results["max_r_angle"] > 140:
+            self.feedbackText.append(
+                "Squat too deep! Try to bend your knees closer to 90 degrees!"
+            )
+        elif results["average_thigh_angle"] > 45:
+            self.feedbackText.append(
+                "The angle between your legs is too high! Try to make your legs parallel to each other during the squat motion."
+            )
+        elif results["average_r_foot_cy"] < -5 or results["average_r_foot_cy"] < -5:
+            self.feedbackText.append(
+                ""
+                "Your weight is too far forward! Try to lean back more and balance right over your ankles."
+            )
+        elif results["average_r_foot_cy"] > 8 or results["average_r_foot_cy"] > 8:
+            self.feedbackText.append(
+                ""
+                "Your weight is too far backwards! Try to lean forward more and balance right over your ankles."
+            )
+        else:
+            self.feedbackText.append("Good form!")
+            self.squats_performed += 1
+        self.squats_attempted += 1
+
+    def new_data(self, metrics: DerivedLegMetrics):
+        if time.time() * 1000 - self.last_draw_time < 300:
+            return
+        self.last_draw_time = time.time() * 1000
         # do something with updated data
-        num = random.randint(90, 180)
-        num2 = random.uniform(-1, 1)
 
-        self.leftfrontlegfunctions.updateLeg(num, 90, num2)
+        left_knee = max(min(180, metrics.l_knee_angle + 90), 0)
+        left_foot_balance_y = metrics.l_force_cy / 11.75
+        left_foot_balance_x = metrics.l_force_cx / 4.5
+
+        right_knee = max(min(180, metrics.r_knee_angle + 90), 0)
+        right_foot_balance_y = metrics.r_force_cy / 11.75
+        right_foot_balance_x = metrics.r_force_cx / 4.5
+
+        print(left_knee)
+        print(right_knee)
+
+        self.leftfrontlegfunctions.updateLeg(left_knee, 90, left_foot_balance_x)
         self.leftfrontview.updatePoints(self.leftfrontlegfunctions.getPoints())
         self.leftfrontview.update()
 
-        self.rightfrontlegfunctions.updateLeg(num, 90, num2)
+        self.rightfrontlegfunctions.updateLeg(right_knee, 90, right_foot_balance_x)
         self.rightfrontview.updatePoints(self.rightfrontlegfunctions.getPoints())
         self.rightfrontview.update()
 
-        self.leftsidelegfunctions.updateLeg(num, 90, num2)
+        self.leftsidelegfunctions.updateLeg(left_knee, 90, left_foot_balance_y)
         self.leftsideview.updatePoints(self.leftsidelegfunctions.getPoints())
         self.leftsideview.update()
 
-        self.rightsidelegfunctions.updateLeg(num, 90, num2)
+        self.rightsidelegfunctions.updateLeg(right_knee, 90, right_foot_balance_y)
         self.rightsideview.updatePoints(self.rightsidelegfunctions.getPoints())
         self.rightsideview.update()
-
-        self.feedBackText.append(
-            "simulated data returned -- knee angle: "
-            + str(num)
-            + " | foot com: "
-            + str(num2)
-        )

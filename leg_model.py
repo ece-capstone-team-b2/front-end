@@ -61,9 +61,7 @@ class LegVisualizer(QMainWindow):
     def update_loop(self):
         data = None
         while not self.data_queue.empty():
-            print(self.data_queue.qsize())
             data = self.data_queue.get()
-            self.datalogger.update(data)
             if isinstance(data, ImuData):
                 break
             else:
@@ -77,52 +75,52 @@ class LegVisualizer(QMainWindow):
             # Thigh/knee nod
             self.r_thigh_quat = imu_data.positionData.quatOrientation
 
-            theta = -90
-            theta_rad = np.radians(theta)
-            q_rotation = np.array(
-                [np.cos(theta_rad / 2), 0, 0, np.sin(theta_rad / 2)]  # w  # x  # y  # z
-            )
+            # theta = -90
+            # theta_rad = np.radians(theta)
+            # q_rotation = np.array(
+            #     [np.cos(theta_rad / 2), 0, 0, np.sin(theta_rad / 2)]  # w  # x  # y  # z
+            # )
 
-            self.r_thigh_quat = rotate_quaternion_by_quaternion(
-                self.r_thigh_quat, q_rotation
-            )
+            # self.r_thigh_quat = rotate_quaternion_by_quaternion(
+            #     self.r_thigh_quat, q_rotation
+            # )
 
         if device_num == 4:
             self.r_leg_quat = imu_data.positionData.quatOrientation
-            theta = -90
-            theta_rad = np.radians(theta)
-            q_rotation = np.array(
-                [np.cos(theta_rad / 2), 0, 0, np.sin(theta_rad / 2)]  # w  # x  # y  # z
-            )
+            # theta = -90
+            # theta_rad = np.radians(theta)
+            # q_rotation = np.array(
+            #     [np.cos(theta_rad / 2), 0, 0, np.sin(theta_rad / 2)]  # w  # x  # y  # z
+            # )
 
-            self.r_leg_quat = rotate_quaternion_by_quaternion(
-                self.r_leg_quat, q_rotation
-            )
+            # self.r_leg_quat = rotate_quaternion_by_quaternion(
+            #     self.r_leg_quat, q_rotation
+            # )
         if device_num == 1:
 
             self.l_thigh_quat = imu_data.positionData.quatOrientation
 
-            theta = -90
-            theta_rad = np.radians(theta)
-            q_rotation = np.array(
-                [np.cos(theta_rad / 2), 0, 0, np.sin(theta_rad / 2)]  # w  # x  # y  # z
-            )
+            # theta = -90
+            # theta_rad = np.radians(theta)
+            # q_rotation = np.array(
+            #     [np.cos(theta_rad / 2), 0, 0, np.sin(theta_rad / 2)]  # w  # x  # y  # z
+            # )
 
-            self.l_thigh_quat = rotate_quaternion_by_quaternion(
-                self.l_thigh_quat, q_rotation
-            )
+            # self.l_thigh_quat = rotate_quaternion_by_quaternion(
+            #     self.l_thigh_quat, q_rotation
+            # )
         if device_num == 3:
 
             self.l_leg_quat = imu_data.positionData.quatOrientation
-            theta = -90
-            theta_rad = np.radians(theta)
-            q_rotation = np.array(
-                [np.cos(theta_rad / 2), 0, 0, np.sin(theta_rad / 2)]  # w  # x  # y  # z
-            )
+            # theta = -90
+            # theta_rad = np.radians(theta)
+            # q_rotation = np.array(
+            #     [np.cos(theta_rad / 2), 0, 0, np.sin(theta_rad / 2)]  # w  # x  # y  # z
+            # )
 
-            self.l_leg_quat = rotate_quaternion_by_quaternion(
-                self.l_leg_quat, q_rotation
-            )
+            # self.l_leg_quat = rotate_quaternion_by_quaternion(
+            #     self.l_leg_quat, q_rotation
+            # )
 
         self.update_plot()
 
@@ -146,10 +144,9 @@ class LegVisualizer(QMainWindow):
         r_q_rel = quaternion_multiply(self.r_leg_quat, r_q_thigh_conj)
         _, r_knee_angle = quaternion_to_axis_angle(r_q_rel)
 
-        print("Effective right knee rotation angle (radians):", r_knee_angle)
         print(
             "Effective right knee rotation angle (degrees):",
-            360 - np.degrees(r_knee_angle),
+            np.degrees(r_knee_angle),
         )
 
         # Plot the segments as lines
@@ -183,10 +180,18 @@ class LegVisualizer(QMainWindow):
         l_q_rel = quaternion_multiply(self.l_leg_quat, l_q_thigh_conj)
         _, l_knee_angle = quaternion_to_axis_angle(l_q_rel)
 
-        print("Effective right knee rotation angle (radians):", l_knee_angle)
         print(
-            "Effective right knee rotation angle (degrees):",
-            360 - np.degrees(l_knee_angle),
+            "Effective left knee rotation angle (degrees):",
+            np.degrees(l_knee_angle),
+        )
+
+        l_q_thigh_conj = quaternion_conjugate(self.l_thigh_quat)
+        l_r_rel = quaternion_multiply(self.r_thigh_quat, l_q_thigh_conj)
+        _, groin_angle = quaternion_to_axis_angle(l_r_rel)
+
+        print(
+            "Effective groin  angle (degrees):",
+            (np.degrees(groin_angle) - 180),
         )
 
         # Plot the segments as lines

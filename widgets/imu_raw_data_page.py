@@ -1,3 +1,4 @@
+import time
 from typing import Dict, List
 
 import pyqtgraph as pg
@@ -55,6 +56,7 @@ class ImuRawDataPage(DataPageInterface):
         self.visible = visible
         self.left_node_id = left_node_id
         self.right_node_id = right_node_id
+        self.last_update_time = time.time() * 1000
         self.setup()
 
     # setup the layout, plots, and tables
@@ -268,15 +270,17 @@ class ImuRawDataPage(DataPageInterface):
             self.updateTables(plot_values)
 
     def updateLines(self):
-        for plot_name, plots in self.plot_lines.items():
-            for side, axes in plots.items():
-                for axis, line in axes.items():
-                    line.setData(
-                        x=self.plot_data[plot_name][side][axis][0],
-                        y=self.plot_data[plot_name][side][axis][1],
-                    )
-                    line.appendData()
-                    line.setData
+        if time.time() * 1000 - self.last_update_time > 500:
+            self.last_update_time = time.time() * 1000
+            for plot_name, plots in self.plot_lines.items():
+                for side, axes in plots.items():
+                    for axis, line in axes.items():
+                        line.setData(
+                            x=self.plot_data[plot_name][side][axis][0],
+                            y=self.plot_data[plot_name][side][axis][1],
+                        )
+                        line.appendData()
+                        line.setData
 
     def updateTables(self, table_data):
         for side, tables in self.table_map.items():

@@ -12,7 +12,9 @@ import serial
 from PyQt6.QtCore import Qt, QThread
 from PyQt6.QtWidgets import QApplication, QVBoxLayout, QWidget
 
+from data_processor import DataProcessor
 from data_view_publisher import DataViewPublisher
+from squat_tracking import SquatTracker
 from widgets import *
 
 
@@ -78,9 +80,13 @@ class Page:
 
     # set up the pages and connect them to their corresponding buttons
     def setUpPages(self):
+        data_processor = DataProcessor(self.dataSource)
+        squat_tracker = SquatTracker(data_processor)
         self.homePage = HomePage()
         self.dataControls = DataControlsPage(self.dataSource, visible=False)
-        self.feedbackPage = FeedbackPage(self.dataSource, visible=False)
+        self.feedbackPage = FeedbackPage(
+            self.dataSource, squat_tracker, data_processor, visible=False
+        )
         self.ankleImuPage = ImuRawDataPage(
             self.dataSource,
             visible=False,

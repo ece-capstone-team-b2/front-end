@@ -139,9 +139,46 @@ class ProcessedFlexData:
     timestamp: float
 
 
+@dataclass
+class DerivedLegMetrics:
+    thigh_relative_angle_degrees: float
+    l_knee_angle: float
+    r_knee_angle: float
+    l_shin_angle_above_ground: float
+    r_shin_angle_above_ground: float
+    l_foot_force: float
+    l_force_cy: float
+    l_force_cx: float
+    r_foot_force: float
+    r_force_cy: float
+    r_force_cx: float
+    l_hip: tuple[float, float, float]
+    l_knee: tuple[float, float, float]
+    l_ankle: tuple[float, float, float]
+    r_hip: tuple[float, float, float]
+    r_knee: tuple[float, float, float]
+    r_ankle: tuple[float, float, float]
+
+
 def process_imu_data(imu_data: ImuData) -> ImuData:
     # TODO: Orientation quaternion fixes
     return imu_data
+
+
+def resistance_to_angle(resistance_ohms: float) -> float:
+    # Known calibration points
+    resistance_flat = 70000.0  # 70kΩ
+    resistance_bent = 140000.0  # 140kΩ
+    angle_bent = 90.0  # degrees
+
+    # Clamp resistance to the range to avoid extrapolation
+
+    # Linear interpolation
+    angle = (
+        (resistance_ohms - resistance_flat) / (resistance_bent - resistance_flat)
+    ) * angle_bent
+    angle = max(-5, min(angle, 190))
+    return angle
 
 
 def process_flex_data(flex_data: FlexData) -> ProcessedFlexData:
@@ -150,7 +187,7 @@ def process_flex_data(flex_data: FlexData) -> ProcessedFlexData:
     return ProcessedFlexData(
         nodeId=flex_data.nodeId,
         raw=flex_data,
-        bendAngleDegrees=resistance,
+        bendAngleDegrees=resistance_to_angle(resistance),
         timestamp=flex_data.timestamp,
     )
 

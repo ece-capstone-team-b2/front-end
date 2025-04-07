@@ -1,4 +1,5 @@
 import random
+import time
 from typing import Dict, List
 
 import pyqtgraph as pg
@@ -29,6 +30,7 @@ class FlexSensorRawDataPage(DataPageInterface):
         self.visible = visible
         self.label = label
         self.setup()
+        self.last_update_time = time.time() * 1000
 
     def setup(self):
         layout = QGridLayout(self)
@@ -61,8 +63,8 @@ class FlexSensorRawDataPage(DataPageInterface):
 
     def initializeLines(self):
         self.plot_data = {
-            "left": (CappedList(), CappedList()),
-            "right": (CappedList(), CappedList()),
+            "left": (CappedList(50), CappedList(50)),
+            "right": (CappedList(50), CappedList(50)),
         }
         self.plot_items = {
             "left": self.left_angle_plot.getPlotItem(),
@@ -82,10 +84,15 @@ class FlexSensorRawDataPage(DataPageInterface):
             return
         side = "left" if data.nodeId == 1 else "right"
         self.plot_data[side][0].append(data.timestamp)
-        self.plot_data[side][1].append(data.bendAngleDegrees)
+        if side == "left":
+            self.plot_data[side][1].append(data.bendAngleDegrees)
+        else:
+            self.plot_data[side][1].append(data.bendAngleDegrees)
         if self.visible:
             self.updateLines()
 
     def updateLines(self):
-        for side, lines in self.plot_lines.items():
-            lines.setData(x=self.plot_data[side][0], y=self.plot_data[side][1])
+        if time.time() * 1000 - self.last_update_time > 300:
+            self.last_update_time = time.time() * 1000
+            for side, lines in self.plot_lines.items():
+                lines.setData(x=self.plot_data[side][0], y=self.plot_data[side][1])
